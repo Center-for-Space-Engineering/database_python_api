@@ -16,12 +16,12 @@ class dataTypeImporter():
         self.__logger = logggerCustom("logs/dataTypeImporter.txt")
         self.__coms = coms
         try:
-            self.__dataFile = open("database/dataTypes.dtobj")
+            self.__dataFile = open("database_python_api/dataTypes.dtobj")
             self.__logger.sendLog("data types file found.")
             self.__coms.printMessage("data types file found.", 2)
         except:
-            self.__coms(" No database/dataTypes.dtobj file detected!", 0)   
-            self.__logger.sendLog(" No database/dataTypes.dtobj file detected!")   
+            self.__coms(" No database_python_api/dataTypes.dtobj file detected!", 0)   
+            self.__logger.sendLog(" No database_python_api/dataTypes.dtobj file detected!")   
     def pasreDataTypes(self):
         currentDataGroup = ""
         for line in self.__dataFile:
