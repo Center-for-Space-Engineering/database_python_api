@@ -8,7 +8,7 @@ import pandas as pd
 
 from database_python_api.dataTypesImporter import dataTypeImporter
 from database_python_api.dataType import dataType
-from infoHandling.logger import logggerCustom
+from logging_system_display_python_api.logger import logggerCustom
 from threading_python_api.threadWrapper import threadWrapper
 class DataBaseHandler(threadWrapper):
     '''

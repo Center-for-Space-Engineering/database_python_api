@@ -4,7 +4,7 @@ from database_python_api.dataType import dataType #this import is to run this fi
 from colorama import Fore
 
 sys.path.insert(0, "..")
-from infoHandling.logger import logggerCustom
+from logging_system_display_python_api.logger import logggerCustom
 
 
 #TODO: add try except statements 
