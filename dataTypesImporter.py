@@ -4,7 +4,7 @@ from database_python_api.dataType import dataType #this import is to run this fi
 from colorama import Fore
 
 sys.path.insert(0, "..")
-from logging_system_display_python_api.logger import logggerCustom
+from logging_system_display_python_api.logger import loggerCustom
 
 
 #TODO: add try except statements 
@@ -13,15 +13,15 @@ from logging_system_display_python_api.logger import logggerCustom
 class dataTypeImporter():
     def __init__(self, coms):
         self.__dataTypes = {}
-        self.__logger = logggerCustom("logs/dataTypeImporter.txt")
+        self.__logger = loggerCustom("logs/dataTypeImporter.txt")
         self.__coms = coms
         try:
             self.__dataFile = open("database_python_api/dataTypes.dtobj")
-            self.__logger.sendLog("data types file found.")
-            self.__coms.printMessage("data types file found.", 2)
+            self.__logger.send_log("data types file found.")
+            self.__coms.print_message("data types file found.", 2)
         except:
             self.__coms(" No database_python_api/dataTypes.dtobj file detected!", 0)   
-            self.__logger.sendLog(" No database_python_api/dataTypes.dtobj file detected!")   
+            self.__logger.send_log(" No database_python_api/dataTypes.dtobj file detected!")   
     def pasreDataTypes(self):
         currentDataGroup = ""
         for line in self.__dataFile:
@@ -39,7 +39,7 @@ class dataTypeImporter():
                         processed.append(feild[0])
                         disCon = feild[1].split('<')
 
-                        self.__logger.sendLog(f"Decoded type for group {currentDataGroup} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
+                        self.__logger.send_log(f"Decoded type for group {currentDataGroup} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
                         self.__dataTypes[currentDataGroup].addFeild(processed[0].strip(), processed[1].strip(), processed[2].strip())
                         #because this is a discontinuos type we need to add it to the list of discontinuos types
                         self.__dataTypes[currentDataGroup].addConverMap(disCon[0], disCon[1])
@@ -54,23 +54,23 @@ class dataTypeImporter():
                         else :
                             processed.append("NONE")
                         
-                        self.__logger.sendLog(f"Decoded type for group {currentDataGroup} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
+                        self.__logger.send_log(f"Decoded type for group {currentDataGroup} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
                         self.__dataTypes[currentDataGroup].addFeild(processed[0].strip(), processed[1].strip(), processed[2].strip())
                 elif "#" in line:
                     processed = line.replace('  ', "")
                     processed = processed.replace("\n", "")
                     processed = processed.split(":")
-                    self.__logger.sendLog(f"Decoded type for group {currentDataGroup} : feild name ignored bits, bit length {processed[1]}")
+                    self.__logger.send_log(f"Decoded type for group {currentDataGroup} : feild name ignored bits, bit length {processed[1]}")
                     self.__dataTypes[currentDataGroup].addFeild("igrnoed feild", processed[1].strip(), "NONE")
                 else :
                     processed = line.replace('  ', "")
                     processed = processed.replace("\n", "")
                     currentDataGroup = processed.strip()
                     self.__dataTypes[currentDataGroup] = dataType(currentDataGroup, self.__coms)
-                    self.__logger.sendLog(f"Created data group {currentDataGroup}")
+                    self.__logger.send_log(f"Created data group {currentDataGroup}")
 
-        self.__logger.sendLog(f"Created data types:\n {self}")   
-        self.__coms.printMessage(f"Created data types.", 2)   
+        self.__logger.send_log(f"Created data types:\n {self}")   
+        self.__coms.print_message(f"Created data types.", 2)   
     def get_data_types(self):
         return self.__dataTypes
     def __str__(self):

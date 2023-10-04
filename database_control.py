@@ -8,7 +8,7 @@ import pandas as pd
 
 from database_python_api.dataTypesImporter import dataTypeImporter
 from database_python_api.dataType import dataType
-from logging_system_display_python_api.logger import logggerCustom
+from logging_system_display_python_api.logger import loggerCustom
 from threading_python_api.threadWrapper import threadWrapper
 class DataBaseHandler(threadWrapper):
     '''
@@ -24,7 +24,7 @@ class DataBaseHandler(threadWrapper):
     
     def __init__(self, coms, db_name = 'database/database_file'):
         #make class matiance vars
-        self.__logger = logggerCustom("logs/database_log_file.txt")
+        self.__logger = loggerCustom("logs/database_log_file.txt")
         self.__coms = coms
         self.__db_name = db_name
         self.__conn = None
@@ -66,8 +66,8 @@ class DataBaseHandler(threadWrapper):
         #create a table in the data bas for each data type
         for table in self.__tables:
             self.create_table([table])
-        self.__logger.sendLog("Created database:\n" + self.get_tables_html())
-        self.__coms.printMessage("Created database", 2)
+        self.__logger.send_log("Created database:\n" + self.get_tables_html())
+        self.__coms.print_message("Created database", 2)
     
     def create_table(self, args):
         '''
@@ -96,12 +96,12 @@ class DataBaseHandler(threadWrapper):
         #try to make the table in the data base
         try :  
             self.__c.execute(db_command)
-            self.__logger.sendLog("Created table: " + db_command)
-            self.__coms.printMessage("Created table: " + db_command, 2)
+            self.__logger.send_log("Created table: " + db_command)
+            self.__coms.print_message("Created table: " + db_command, 2)
         except Exception as error: # pylint: disable=w0702
-            self.__coms.printMessage(str(error) + " Command send to db: " + db_command, 0) 
-            self.__logger.sendLog("Failed to created table: " + db_command + str(error))
-            self.__coms.printMessage("Failed to created table: " + db_command + str(error), 0)
+            self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0) 
+            self.__logger.send_log("Failed to created table: " + db_command + str(error))
+            self.__coms.print_message("Failed to created table: " + db_command + str(error), 0)
     def insert_data(self, args):
         '''
             This func takes in the table_name to insert and a list of data, 
@@ -132,11 +132,11 @@ class DataBaseHandler(threadWrapper):
         try:
             self.__c.execute(db_command)
             self.__conn.commit()
-            self.__logger.sendLog("INSERT COMMAND: " + db_command)
-            self.__coms.printMessage("INSERT COMMAND: " + db_command, 2)
+            self.__logger.send_log("INSERT COMMAND: " + db_command)
+            self.__coms.print_message("INSERT COMMAND: " + db_command, 2)
         except Exception as error:
             self.__coms(str(error) + " Command send to db: " + db_command, 0) 
-            self.__logger.sendLog(str(error) + " Command send to db: " + db_command)
+            self.__logger.send_log(str(error) + " Command send to db: " + db_command)
             raise Exception
         return "Complete"
     #some  useful getters
@@ -186,11 +186,11 @@ class DataBaseHandler(threadWrapper):
             #from and run db command
             db_command = f"SELECT * FROM {args[0]} WHERE time_stamp >= {str(args[1])} ORDER BY time_stamp"
             self.__c.execute(db_command)
-            self.__logger.sendLog("Query command recived: "  + db_command)
-            self.__coms.printMessage("Query command recived: "  + db_command, 2)
+            self.__logger.send_log("Query command recived: "  + db_command)
+            self.__coms.print_message("Query command recived: "  + db_command, 2)
         except Exception as error:
-            self.__coms.printMessage(str(error) + " Command send to db: " + db_command, 0)
-            self.__logger.sendLog(str(error) + " Command send to db: " + db_command)
+            self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0)
+            self.__logger.send_log(str(error) + " Command send to db: " + db_command)
             return "<p> Error getting data </p>"
         #get cols 
         cols = ["Time Stored "] # add time stamp to the cols lis
@@ -204,7 +204,7 @@ class DataBaseHandler(threadWrapper):
                 message += f"{data.iloc[idx,i]},"
                 message += f"{data.iloc[idx,len(cols) - 1]}"# add last col with out ,
             message += "</p>"
-        self.__logger.sendLog("data collected: " + message)
+        self.__logger.send_log("data collected: " + message)
         return message
 
     #this is the setter section
