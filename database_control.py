@@ -45,7 +45,7 @@ class DataBaseHandler(threadWrapper):
         super().__init__()
 
         #send request to parent class to make the data base
-        super().makeRequest('create_data_base', [])
+        super().make_request('create_data_base', [])
 
     def create_data_base(self):
         '''
