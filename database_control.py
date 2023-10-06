@@ -6,10 +6,11 @@ import sqlite3
 import time
 import pandas as pd
 
-from database_python_api.dataTypesImporter import dataTypeImporter
-from database_python_api.dataType import dataType
-from logging_system_display_python_api.logger import loggerCustom
-from threading_python_api.threadWrapper import threadWrapper
+from database_python_api.dataTypesImporter import dataTypeImporter # pylint: disable=e0401
+from database_python_api.dataType import dataType # pylint: disable=e0401
+from logging_system_display_python_api.logger import loggerCustom # pylint: disable=e0401
+from threading_python_api.threadWrapper import threadWrapper # pylint: disable=e0401
+
 class DataBaseHandler(threadWrapper):
     '''
         calling the init function will create the basics for the class and then 
@@ -98,7 +99,7 @@ class DataBaseHandler(threadWrapper):
             self.__c.execute(db_command)
             self.__logger.send_log("Created table: " + db_command)
             self.__coms.print_message("Created table: " + db_command, 2)
-        except Exception as error: # pylint: disable=w0702
+        except Exception as error: # pylint: disable=w0718
             self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0) 
             self.__logger.send_log("Failed to created table: " + db_command + str(error))
             self.__coms.print_message("Failed to created table: " + db_command + str(error), 0)
@@ -137,14 +138,16 @@ class DataBaseHandler(threadWrapper):
         except Exception as error:
             self.__coms(str(error) + " Command send to db: " + db_command, 0) 
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
+            # pylint: disable=w0707
+            # pylint: disable=w0719
             raise Exception
         return "Complete"
     #some  useful getters
     def get_tables_html(self):
         # pylint: disable=missing-function-docstring
         message = "<! DOCTYPE html>\n<html>\n<body>\n<h1>DataBase Tables</h1>"
-        for table in self.__tables:
-            message +=f"<p><strong>Table:</strong> {table}</p>\n"
+        for table in self.__tables: 
+            message +=f"<p><strong>Table:</strong> {table}</p>\n" # pylint: disable=r1713 
         message += "</body>\n</html>"
         return message
     def get_tables_str_list(self):
@@ -188,7 +191,7 @@ class DataBaseHandler(threadWrapper):
             self.__c.execute(db_command)
             self.__logger.send_log("Query command recived: "  + db_command)
             self.__coms.print_message("Query command recived: "  + db_command, 2)
-        except Exception as error:
+        except Exception as error: # pylint: disable=w0718
             self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0)
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
             return "<p> Error getting data </p>"

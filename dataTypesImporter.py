@@ -1,35 +1,39 @@
-import sys
-from database_python_api.dataType import dataType #this import is to run this file from the server. 
-# from dataType import dataType  #if you want to just run this file, NOTE: run this from the host folder. command: python3 database/dataTypesImporter.py 
-from colorama import Fore
-
-sys.path.insert(0, "..")
-from logging_system_display_python_api.logger import loggerCustom
-
-
-#TODO: add try except statements 
+'''
+    This class turns defined data types into python class that can be used by the data
+    base and other classes in the system so that we can do data elevation.
+'''
+from database_python_api.dataType import dataType # pylint: disable=e0401
+from logging_system_display_python_api.logger import loggerCustom # pylint: disable=e0401
 
 
 class dataTypeImporter():
-    def __init__(self, coms):
-        self.__dataTypes = {}
+    '''
+        This class is tasked with translating a user defined data type into python classes. 
+        RIGHT NOW: it uses text files.
+        TODO: IT needs to use the exle dictionary files. 
+    '''
+    def __init__(self, coms=None):
+        self.__data_types = {}
         self.__logger = loggerCustom("logs/dataTypeImporter.txt")
         self.__coms = coms
         try:
-            self.__dataFile = open("database_python_api/dataTypes.dtobj")
+            self.__dataFile = open("database_python_api/dataTypes.dtobj") # pylint: disable=r1732
             self.__logger.send_log("data types file found.")
             self.__coms.print_message("data types file found.", 2)
-        except:
+        except: # pylint: disable=w0702
             self.__coms(" No database_python_api/dataTypes.dtobj file detected!", 0)   
             self.__logger.send_log(" No database_python_api/dataTypes.dtobj file detected!")   
-    def pasreDataTypes(self):
-        currentDataGroup = ""
+    def pasre_data_types(self):
+        '''
+            reads file and then creates the data type classes based on what the file says. 
+        '''
+        current_data_group = ""
         for line in self.__dataFile:
             if "//" in line:
                 pass
             else :
                 if '    ' in line:
-                    if('@' in line): # this is a discontinuos type
+                    if '@' in line: # this is a discontinuos type
                         processed = line.replace('  ', "")
                         processed = processed.replace("\n", "")
                         processed = processed.split(":")
@@ -39,52 +43,45 @@ class dataTypeImporter():
                         processed.append(feild[0])
                         disCon = feild[1].split('<')
 
-                        self.__logger.send_log(f"Decoded type for group {currentDataGroup} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
-                        self.__dataTypes[currentDataGroup].addFeild(processed[0].strip(), processed[1].strip(), processed[2].strip())
+                        self.__logger.send_log(f"Decoded type for group {current_data_group} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
+                        self.__data_types[current_data_group].addFeild(processed[0].strip(), processed[1].strip(), processed[2].strip())
                         #because this is a discontinuos type we need to add it to the list of discontinuos types
-                        self.__dataTypes[currentDataGroup].addConverMap(disCon[0], disCon[1])
+                        self.__data_types[current_data_group].addConverMap(disCon[0], disCon[1])
                     else :
                         processed = line.replace('  ', "")
                         processed = processed.replace("\n", "")
                         processed = processed.split(":")
                         temp = processed[1].split(">")
                         processed[1] = temp[0]
-                        if (len(temp) > 1):
+                        if len(temp) > 1:
                             processed.append(temp[1])
                         else :
                             processed.append("NONE")
                         
-                        self.__logger.send_log(f"Decoded type for group {currentDataGroup} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
-                        self.__dataTypes[currentDataGroup].addFeild(processed[0].strip(), processed[1].strip(), processed[2].strip())
+                        self.__logger.send_log(f"Decoded type for group {current_data_group} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
+                        self.__data_types[current_data_group].addFeild(processed[0].strip(), processed[1].strip(), processed[2].strip())
                 elif "#" in line:
                     processed = line.replace('  ', "")
                     processed = processed.replace("\n", "")
                     processed = processed.split(":")
-                    self.__logger.send_log(f"Decoded type for group {currentDataGroup} : feild name ignored bits, bit length {processed[1]}")
-                    self.__dataTypes[currentDataGroup].addFeild("igrnoed feild", processed[1].strip(), "NONE")
+                    self.__logger.send_log(f"Decoded type for group {current_data_group} : feild name ignored bits, bit length {processed[1]}")
+                    self.__data_types[current_data_group].addFeild("igrnoed feild", processed[1].strip(), "NONE")
                 else :
                     processed = line.replace('  ', "")
                     processed = processed.replace("\n", "")
-                    currentDataGroup = processed.strip()
-                    self.__dataTypes[currentDataGroup] = dataType(currentDataGroup, self.__coms)
-                    self.__logger.send_log(f"Created data group {currentDataGroup}")
+                    current_data_group = processed.strip()
+                    self.__data_types[current_data_group] = dataType(current_data_group, self.__coms)
+                    self.__logger.send_log(f"Created data group {current_data_group}")
 
         self.__logger.send_log(f"Created data types:\n {self}")   
-        self.__coms.print_message(f"Created data types.", 2)   
+        self.__coms.print_message("Created data types.", 2)   
     def get_data_types(self):
-        return self.__dataTypes
+        # pylint: disable=missing-function-docstring
+        return self.__data_types
     def __str__(self):
+        # pylint: disable=missing-function-docstring
         message = ""
-        for group in self.__dataTypes:
-            message += str(self.__dataTypes[group]) + "\n"
+        for group in self.__data_types: # pylint: disable=c0206
+            message += str(self.__data_types[group]) + "\n"
 
         return message
-        
-
-if __name__ == "__main__":
-    x = dataTypeImporter()
-    x.pasreDataTypes()
-    print(x)
-
-
-

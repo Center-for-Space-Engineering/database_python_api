@@ -1,43 +1,61 @@
-import sys
-sys.path.insert(0, "..")
-from logging_system_display_python_api.logger import loggerCustom
+'''
+    This modlue is how we are going to convert any data time to any other data type, including elevating it from the bit stream to L 1/2.
+'''
+
+from logging_system_display_python_api.logger import loggerCustom # pylint: disable=e0401
 
 
 class dataType():
-    def __init__(self, dataGroup, coms):
+    '''
+        This class contatins all the nessicary mappings for class so that we can converte data from one type to another type.
+    '''
+    def __init__(self, dataGroup, coms = None):
         self.__feilds = {} #this dict contains all the data types that will be saved to the data base
-        self.__bitMap = []# this list contains info on how to collect the bits from the bit stream. 
-        self.__convertMap = {} #this dict contatins types that need to be mapped together. The MSB is the key.  
-        self.__dataGroup = dataGroup
-        self.__logger = loggerCustom(f"logs/dataType_{self.__dataGroup}.txt") 
-        self.__coms = coms 
-    def addFeild(self, name, bits, convert):
-        self.__feilds[name] = (bits, convert)
-        self.__logger.send_log(f"{self.__dataGroup} added a feild: {name} : bit length {bits} > converter type {convert}")
-        self.addBitMap(name, bits) # add the type to the bit map     
-    def addBitMap(self, name, bits):    
-        self.__bitMap.append((name, bits))
-        self.__logger.send_log(f"{self.__dataGroup} added a bit map step: {name} : bit length {bits}")
-    def addConverMap(self, type1, type2):
-        self.__convertMap[type1] = type2
-        self.__logger.send_log(f"{self.__dataGroup} added a discontiunous data type: {type1} < {type2}")
-    def __str__(self):
-        message = f"<! DOCTYPE html>\n<html>\n<body>\n<h1><strong>Data Type:</strong> {self.__dataGroup}</h1>\n"
-        message += f"<h1><strong>Feilds in database:</strong></h1>\n"
+        self.__bit_map = []# this list contains info on how to collect the bits from the bit stream. 
+        self.__convert_map = {} #this dict contatins types that need to be mapped together. The MSB is the key.  
+        self.__data_group = dataGroup
+        self.__logger = loggerCustom(f"logs/dataType_{self.__data_group}.txt") 
+        _ = coms  # this will be self.__coms one day just not using it right now
 
-        for field in self.__feilds:
-            if(self.__feilds[field][1] != "NONE"):
+    def add_feild(self, name, bits, convert):
+        '''
+            Adds a feild that can be converted
+        '''
+        self.__feilds[name] = (bits, convert)
+        self.__logger.send_log(f"{self.__data_group} added a feild: {name} : bit length {bits} > converter type {convert}")
+        self.add_bit_map(name, bits) # add the type to the bit map     
+    def add_bit_map(self, name, bits):    
+        '''
+            tells this class where to find the bits it needs
+        '''
+        self.__bit_map.append((name, bits))
+        self.__logger.send_log(f"{self.__data_group} added a bit map step: {name} : bit length {bits}")
+    def add_conver_map(self, type1, type2):
+        '''
+            add a map for cobining types togther. A.K.A feild1,field2 = field3
+        '''
+        self.__convert_map[type1] = type2
+        self.__logger.send_log(f"{self.__data_group} added a discontiunous data type: {type1} < {type2}")
+    def __str__(self):
+        # pylint: disable=missing-function-docstring
+        message = f"<! DOCTYPE html>\n<html>\n<body>\n<h1><strong>Data Type:</strong> {self.__data_group}</h1>\n"
+        message += "<h1><strong>Feilds in database:</strong></h1>\n"
+
+        for field in self.__feilds: # pylint: disable=c0206
+            if self.__feilds[field][1] != "NONE":
                 message +=f"<p>&emsp;<strong>Feild:</strong> {field} <strong>Bit lenght:</strong> {self.__feilds[field][0]} <strong>Converter type:</strong> {self.__feilds[field][1]} </p>\n"
-        message += f"<h2><strong>Bit Map:</strong></h2>\n"
-        for map in self.__bitMap:
-            message +=f"<p>&emsp;<strong>Feild:</strong> {map[0]} <strong>Bit lenght:</strong> {map[1]} </p>\n"
-        message += f"<h3><strong>Discontinuous Mappings:</strong></h3>\n"
-        for typeC in self.__convertMap:
-            message +=f"<p>&emsp;<strong>Feild MSB:</strong> {typeC} <strong>Feild LSB</strong> {self.__convertMap[typeC]} </p>\n"
+        message += "<h2><strong>Bit Map:</strong></h2>\n"
+        for map_iter in self.__bit_map:
+            message +=f"<p>&emsp;<strong>Feild:</strong> {map_iter[0]} <strong>Bit lenght:</strong> {map_iter[1]} </p>\n"
+        message += "<h3><strong>Discontinuous Mappings:</strong></h3>\n"
+        for typeC in self.__convert_map: # pylint: disable=c0206
+            message +=f"<p>&emsp;<strong>Feild MSB:</strong> {typeC} <strong>Feild LSB</strong> {self.__convert_map[typeC]} </p>\n"
         message += "</body>\n</html>"
         return message
     def get_fields(self):
+        # pylint: disable=missing-function-docstring
         return self.__feilds  
     def get_data_group(self):
-        return self.__dataGroup
+        # pylint: disable=missing-function-docstring
+        return self.__data_group
         
