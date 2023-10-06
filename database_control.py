@@ -60,7 +60,7 @@ class DataBaseHandler(threadWrapper):
 
         #find and create the data tables fro the data base
         tableFinder = dataTypeImporter(self.__coms)
-        tableFinder.pasreDataTypes()
+        tableFinder.pasre_data_types()
         self.__tables = tableFinder.get_data_types() #this varible will be used for creatig/accessing/parsing the data. 
         #  In other words its super imporatant.  
 
@@ -165,7 +165,7 @@ class DataBaseHandler(threadWrapper):
         '''
             args is a list where the fist index is a data type obj 
         '''
-        return args[0].getFields() # the args is a data type obj in the first index of the list
+        return args[0].get_fields() # the args is a data type obj in the first index of the list
     def get_feilds_list(self, args):
         '''
             args is a list where the fist index is a data type obj 

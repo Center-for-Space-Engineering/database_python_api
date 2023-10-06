@@ -44,9 +44,9 @@ class dataTypeImporter():
                         disCon = feild[1].split('<')
 
                         self.__logger.send_log(f"Decoded type for group {current_data_group} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
-                        self.__data_types[current_data_group].addFeild(processed[0].strip(), processed[1].strip(), processed[2].strip())
+                        self.__data_types[current_data_group].add_feild(processed[0].strip(), processed[1].strip(), processed[2].strip())
                         #because this is a discontinuos type we need to add it to the list of discontinuos types
-                        self.__data_types[current_data_group].addConverMap(disCon[0], disCon[1])
+                        self.__data_types[current_data_group].add_conver_map(disCon[0], disCon[1])
                     else :
                         processed = line.replace('  ', "")
                         processed = processed.replace("\n", "")
@@ -59,13 +59,13 @@ class dataTypeImporter():
                             processed.append("NONE")
                         
                         self.__logger.send_log(f"Decoded type for group {current_data_group} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
-                        self.__data_types[current_data_group].addFeild(processed[0].strip(), processed[1].strip(), processed[2].strip())
+                        self.__data_types[current_data_group].add_feild(processed[0].strip(), processed[1].strip(), processed[2].strip())
                 elif "#" in line:
                     processed = line.replace('  ', "")
                     processed = processed.replace("\n", "")
                     processed = processed.split(":")
                     self.__logger.send_log(f"Decoded type for group {current_data_group} : feild name ignored bits, bit length {processed[1]}")
-                    self.__data_types[current_data_group].addFeild("igrnoed feild", processed[1].strip(), "NONE")
+                    self.__data_types[current_data_group].add_feild("igrnoed feild", processed[1].strip(), "NONE")
                 else :
                     processed = line.replace('  ', "")
                     processed = processed.replace("\n", "")
