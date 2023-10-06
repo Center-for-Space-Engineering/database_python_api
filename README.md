@@ -85,6 +85,8 @@ NOTE: if you are going to do mulpile discontinuos types mapping to the same elme
 
 ![Data flow](cse_dtobj_flow.png)
 
+NOTE: In application that just want to save 'raw data', jut define a single data type that is the same size as the expected bit stream. 
+
 ## HOW TO
 This api is ment to make things as easy as possible. In order to add a new data the user only need to update the excel file that drives the data types and then reimport things into the database. 
 
