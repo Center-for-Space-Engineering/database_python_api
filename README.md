@@ -87,3 +87,7 @@ NOTE: if you are going to do mulpile discontinuos types mapping to the same elme
 
 ## HOW TO
 This api is ment to make things as easy as possible. In order to add a new data the user only need to update the excel file that drives the data types and then reimport things into the database. 
+
+## Compling README.md with pandocs
+    To complie .md to a pdf: pandoc -s README.md -V geometry:margin=1in -o README.pdf
+    To complie to a stand alone html doc: pandoc  --metadata title="README" -s --self-contained README.md -o README.html
