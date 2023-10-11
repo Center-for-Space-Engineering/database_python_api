@@ -72,8 +72,8 @@ class DataBaseHandler(threadWrapper):
     
     def create_table(self, args):
         '''
-        This function looks to create a table. If the table already exsists if will not create it. 
-        args[0] : is the table name
+            This function looks to create a table. If the table already exsists if will not create it. 
+            args[0] : is the table name
         '''
         table_name = self.__tables[args[0]].get_data_group()
         table_feilds = self.__tables[args[0]].get_fields()
@@ -209,19 +209,43 @@ class DataBaseHandler(threadWrapper):
             message += "</p>"
         self.__logger.send_log("data collected: " + message)
         return message
-
     #this is the setter section
     def create_feild(self, args):
         '''
             this function creates a new feild in a talbe of the data base
             args[0] : New table name
             args[1] : New data feild name
-            args[3] : output feild types 
-        '''    
+            args[3] : output feild type 
+        '''
         table_name = args[0]
         name = args[1]
         out_feild_type = args[2]
-
         new_data_type = dataType(table_name, self.__coms)
-        new_data_type.addFeild(name, 0, out_feild_type)
+
+        if 'list ' not in out_feild_type:
+            new_data_type.add_feild(name, 0, out_feild_type)
+        else :
+            new_data_type.add_feild(name, 0, out_feild_type.replace('list ', ''))
+            new_data_type.add_feild('index', 0, 'int')
+
+        self.__tables[table_name] = new_data_type
+
+        self.create_table([table_name]) #add the table
+
+        return True
+    
+    def create_feilds_arcive(self, args):
+        '''
+            This function creates an arcive in the data base for all the 
+            mappings.
+
+            ARGS:
+                args[0] : table structure to be arcived
+        '''
+
+        table_name = self.__tables[args[0]].get_data_group()
+        table_feilds = self.__tables[args[0]].get_fields()
+
+        
+        
                                                                                          
