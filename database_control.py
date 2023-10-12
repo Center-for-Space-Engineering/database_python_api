@@ -232,20 +232,26 @@ class DataBaseHandler(threadWrapper):
 
         self.create_table([table_name]) #add the table
 
+        self.create_feilds_archived([table_name])
+
         return True
     
-    def create_feilds_arcive(self, args):
+    def create_feilds_archived(self, args):
         '''
-            This function creates an arcive in the data base for all the 
+            This function creates an archived in the data base for all the 
             mappings.
 
             ARGS:
-                args[0] : table structure to be arcived
+                args[0] : table structure name to be archived
         '''
 
         table_name = self.__tables[args[0]].get_data_group()
         table_feilds = self.__tables[args[0]].get_fields()
-
-        
-        
-                                                                                         
+        #Open the archived file
+        self.__dataFile = open("database/dataTypes.dtobj", 'a') # pylint: disable=r1732
+        self.__dataFile.write("\n" + table_name + "\n")
+        for feild in table_feilds:
+            feild_info = self.__tables[table_name].get_field_info(feild)
+            self.__dataFile.write(f"    {feild}:{feild_info[0]} > {feild_info[0]}\n")
+        self.__dataFile.close()
+                                                                                    

@@ -17,7 +17,7 @@ class dataTypeImporter():
         self.__logger = loggerCustom("logs/dataTypeImporter.txt")
         self.__coms = coms
         try:
-            self.__dataFile = open("database_python_api/dataTypes.dtobj") # pylint: disable=r1732
+            self.__dataFile = open("database/dataTypes.dtobj") # pylint: disable=r1732
             self.__logger.send_log("data types file found.")
             self.__coms.print_message("data types file found.", 2)
         except: # pylint: disable=w0702
@@ -32,7 +32,7 @@ class dataTypeImporter():
             if "//" in line:
                 pass
             else :
-                if '    ' in line:
+                if ('    ' in line) or ('\t' in line):
                     if '@' in line: # this is a discontinuos type
                         processed = line.replace('  ', "")
                         processed = processed.replace("\n", "")

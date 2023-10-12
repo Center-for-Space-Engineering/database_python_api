@@ -58,4 +58,6 @@ class dataType():
     def get_data_group(self):
         # pylint: disable=missing-function-docstring
         return self.__data_group
-        
+    def get_field_info(self, feild_name):
+        # pylint: disable=missing-function-docstring
+        return self.__feilds[feild_name]
