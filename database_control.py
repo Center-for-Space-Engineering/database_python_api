@@ -21,8 +21,7 @@ class DataBaseHandler(threadWrapper):
         make request and get request to interface with the class. 
         NOTE: When running multi threaded, only the __init__, makeRequest, getRequest, 
         and run function should be called by out side classes and threads. 
-    '''
-    
+    '''   
     def __init__(self, coms, db_name = 'database/database_file'):
         #make class matiance vars
         self.__logger = loggerCustom("logs/database_log_file.txt")
@@ -47,7 +46,6 @@ class DataBaseHandler(threadWrapper):
 
         #send request to parent class to make the data base
         super().make_request('create_data_base', [])
-
     def create_data_base(self):
         '''
         Makes the data base.
@@ -68,8 +66,7 @@ class DataBaseHandler(threadWrapper):
         for table in self.__tables:
             self.create_table([table])
         self.__logger.send_log("Created database:\n" + self.get_tables_html())
-        self.__coms.print_message("Created database", 2)
-    
+        self.__coms.print_message("Created database", 2)   
     def create_table(self, args):
         '''
             This function looks to create a table. If the table already exsists if will not create it. 
@@ -234,8 +231,7 @@ class DataBaseHandler(threadWrapper):
 
         self.create_feilds_archived([table_name])
 
-        return True
-    
+        return True  
     def create_feilds_archived(self, args):
         '''
             This function creates an archived in the data base for all the 
