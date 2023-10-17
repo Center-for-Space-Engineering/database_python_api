@@ -108,6 +108,7 @@ class DataBaseHandler(threadWrapper):
             the second is the data
             Args:
                 [0] : table name
+                [1] : data
         '''
         db_command = f"INSERT INTO {args[0]} (time_stamp"
         #get the data type obj and then get the feilds list
@@ -245,6 +246,12 @@ class DataBaseHandler(threadWrapper):
         table_feilds = self.__tables[args[0]].get_fields()
         #Open the archived file
         self.__dataFile = open("database/dataTypes.dtobj", 'a') # pylint: disable=r1732
+        self.__dataFile.write("\n" + table_name + "\n")
+        for feild in table_feilds:
+            feild_info = self.__tables[table_name].get_field_info(feild)
+            self.__dataFile.write(f"    {feild}:{feild_info[0]} > {feild_info[1]}\n")
+        #Open the archived back up file
+        self.__dataFile = open("database/dataTypes_backup.dtobj", 'a') # pylint: disable=r1732
         self.__dataFile.write("\n" + table_name + "\n")
         for feild in table_feilds:
             feild_info = self.__tables[table_name].get_field_info(feild)
