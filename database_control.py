@@ -250,6 +250,7 @@ class DataBaseHandler(threadWrapper):
         for feild in table_feilds:
             feild_info = self.__tables[table_name].get_field_info(feild)
             self.__dataFile.write(f"    {feild}:{feild_info[0]} > {feild_info[1]}\n")
+        self.__dataFile.close()
         #Open the archived back up file
         self.__dataFile = open("database/dataTypes_backup.dtobj", 'a') # pylint: disable=r1732
         self.__dataFile.write("\n" + table_name + "\n")
