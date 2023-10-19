@@ -195,7 +195,6 @@ class DataBaseHandler(threadWrapper):
                 html string with data
             NOTE: This function is NOT meant for larg amouts of data! Make request small request to this function of it will take a long time. 
         '''
-        print("Get request")
         message = f"<h1>{args[0]}: " 
         try :
             #from and run db command
