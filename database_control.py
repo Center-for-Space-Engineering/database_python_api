@@ -291,18 +291,36 @@ class DataBaseHandler(threadWrapper):
         else :
             idx  = row[0][0] + 1
 
+        #need to check if it is a string type or not. If it is a string type then we need to save it in groups and not by idivual values. 
+        is_str_out = False
+        feilds = self.get_feilds([self.get_data_type([args[0]])]) 
+        for var in feilds:
+            if ('index_internal' in var) or ('Data_group' in var): pass #igron our internal types
+            elif 'string' in feilds[var][1]: is_str_out = True # its a string so set it to true
         if not 'NO GROUP' in args[1]: #this guy handles when a single input produces many outputs.
-            sub_idx = 0
-            for data in args[2]:
-                self.insert_data([args[0], [data, sub_idx, args[1]]], idx_in= idx)
-                idx += 1
-                sub_idx += 1
+            if(is_str_out): 
+                for out_str in args[2]:
+                    self.insert_data([args[0], [out_str, 0, args[1]]], idx_in= idx)
+                    idx += 1
+            else :
+                for cell in args[2]:
+                    sub_idx = 0
+                    for data in cell:
+                        self.insert_data([args[0], [data, sub_idx, args[1]]], idx_in= idx)
+                        idx += 1
+                        sub_idx += 1
             self.__conn.commit()
             self.__coms.print_message(f"Inserted Data groug {args[1]}.")
         else :
-            for val in args[2]:
-                self.insert_data([args[0], [val]], idx_in = idx) # this is the command to save a single list of values.
-                idx += 1
+            if(is_str_out): 
+                for out_str in args[2]:
+                    self.insert_data([args[0], [out_str]], idx_in= idx)
+                    idx += 1
+            else :
+                for cell in args[2]:
+                    for val in cell:
+                        self.insert_data([args[0], [val]], idx_in = idx) # this is the command to save a single list of values.
+                        idx += 1
             self.__conn.commit()
             self.__coms.print_message(f"Inserted Data.")
     def get_data_large(self, args):

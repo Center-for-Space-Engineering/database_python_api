@@ -21,8 +21,8 @@ class dataTypeImporter():
             self.__logger.send_log("data types file found.")
             self.__coms.print_message("data types file found.", 2)
         except: # pylint: disable=w0702
-            self.__coms(" No database_python_api/dataTypes.dtobj file detected!", 0)   
-            self.__logger.send_log(" No database_python_api/dataTypes.dtobj file detected!")   
+            self.__coms(" No databasei/dataTypes.dtobj file detected!", 0)   
+            self.__logger.send_log(" No database/dataTypes.dtobj file detected!")   
     def pasre_data_types(self):
         '''
             reads file and then creates the data type classes based on what the file says. 
