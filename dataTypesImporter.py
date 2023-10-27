@@ -47,6 +47,10 @@ class dataTypeImporter():
                         self.__data_types[current_data_group].add_feild(processed[0].strip(), processed[1].strip(), processed[2].strip())
                         #because this is a discontinuos type we need to add it to the list of discontinuos types
                         self.__data_types[current_data_group].add_conver_map(disCon[0], disCon[1])
+                    elif 'input_idx_db' in line:
+                        line = line.replace("\n", "")
+                        processed = line.split(":")
+                        self.__data_types[current_data_group].set_idx_name(processed[1]) #add the input_idx_db to the data type so that the data base knows what to use as its index.
                     else :
                         processed = line.replace('  ', "")
                         processed = processed.replace("\n", "")

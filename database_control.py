@@ -6,6 +6,7 @@ import sqlite3
 import time
 import pandas as pd
 import matlab.engine # this is so the data base can see the matlab data types
+import datetime
 
 from database_python_api.dataTypesImporter import dataTypeImporter # pylint: disable=e0401
 from database_python_api.dataType import dataType # pylint: disable=e0401
@@ -80,7 +81,7 @@ class DataBaseHandler(threadWrapper):
         table_feilds = self.__tables[args[0]].get_fields()
         db_command = f"CREATE TABLE IF NOT EXISTS {table_name} ("
         #this line is add as a way to index the data base
-        db_command += "[table_idx] INT PRIMARY KEY" 
+        db_command += "[table_idx] BOOLEAN PRIMARY KEY" 
 
         #iter for every feild in this data group. The feilds come from the dataTypes.dtobj file. 
         for feild_name in table_feilds:
@@ -150,9 +151,14 @@ class DataBaseHandler(threadWrapper):
         except Exception as error:
             self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0) 
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
-            # pylint: disable=w0707
-            # pylint: disable=w0719
-            raise Exception
+
+            if 'UNIQUE constraint failed' in str(error):
+                self.__coms.print_message(f" Dublicate  time stamp {idx}") 
+                self.__logger.send_log(f" Dublicate  time stamp {idx}")
+            else :
+                # pylint: disable=w0707
+                # pylint: disable=w0719
+                raise Exception
         return "Complete"
     #some  useful getters
     def get_tables_html(self):
@@ -236,19 +242,16 @@ class DataBaseHandler(threadWrapper):
 
         for key in args[0]:
             table_name = key
-            new_data_type = dataType(table_name, self.__coms)
+            new_data_type = dataType(table_name, self.__coms, idx_name=args[0][key][0][1]) #access the dictionary for the current table then acces the first list then access first memvber of the list with is our idx name. 
+            input_idx = None
             for feilds_list in args[0][key]:
-                if 'list ' not in feilds_list[1]:
-                    new_data_type.add_feild(feilds_list[0], 0, feilds_list[1])
-                else :
-                    new_data_type.add_feild('index_internal', 0, 'int')
-                    new_data_type.add_feild(feilds_list[0], 0, feilds_list[1].replace('list ', ''))
-                    new_data_type.add_feild('Data_group', 0, 'string')
+                if not ('input_idx_db' in feilds_list[0]): new_data_type.add_feild(feilds_list[0], 0, feilds_list[1])
+                else : input_idx = feilds_list
                 
             self.__tables[table_name] = new_data_type
 
             self.create_table([table_name]) #add the table
-            self.create_feilds_archived([table_name])     
+            self.create_feilds_archived([table_name, input_idx])     
     def create_feilds_archived(self, args):
         '''
             This function creates an archived in the data base for all the 
@@ -256,6 +259,7 @@ class DataBaseHandler(threadWrapper):
 
             ARGS:
                 args[0] : table structure name to be archived
+                args[1] : input idx name 
         '''
 
         table_name = self.__tables[args[0]].get_data_group()
@@ -263,6 +267,7 @@ class DataBaseHandler(threadWrapper):
         #Open the archived file
         self.__dataFile = open("database/dataTypes.dtobj", 'a') # pylint: disable=r1732
         self.__dataFile.write(table_name + "\n")
+        if args[1] != None: self.__dataFile.write(f"    {args[1][0]}:{args[1][1]}\n")
         for feild in table_feilds:
             feild_info = self.__tables[table_name].get_field_info(feild)
             self.__dataFile.write(f"    {feild}:{feild_info[0]} > {feild_info[1]}\n")
@@ -270,6 +275,7 @@ class DataBaseHandler(threadWrapper):
         #Open the archived back up file
         self.__dataFile = open("database/dataTypes_backup.dtobj", 'a') # pylint: disable=r1732
         self.__dataFile.write(table_name + "\n")
+        if args[1] != None: self.__dataFile.write(f"    {args[1][0]}:{args[1][1]}\n")
         for feild in table_feilds:
             feild_info = self.__tables[table_name].get_field_info(feild)
             self.__dataFile.write(f"    {feild}:{feild_info[0]} > {feild_info[1]}\n")
@@ -295,16 +301,22 @@ class DataBaseHandler(threadWrapper):
         
         key = next(iter(args[1])) #get the key of the first index 
         data_length = len(args[1][key]) #get the length of the expected data 
+        idx_feild_name = self.get_data_type([args[0]]).get_idx_name()
 
         for i in range(data_length): #for all the feilds loop throught hte data and get it added to a list to be inserted. 
             data_list = []
+            try:
+                idx = args[1][idx_feild_name][i][0] #if we have a time stamp lets use that as our index
+            except :
+                pass #no timestamp given
             for feild in args[1]:
-                data = args[1][feild][i]
-                try:
-                    if(isinstance(data, str)): data_list.append(data) #strings can be index but we want to save the whole thing. Thats why this line is here.
-                    else : data_list.append(data[0]) #sometimes matlab returns things like matlab.double witch you need to index to actuall get the data
-                except :
-                    data_list.append(data)            
+                if feild != idx_feild_name:
+                    data = args[1][feild][i]
+                    try:
+                        if(isinstance(data, str)): data_list.append(data) #strings can be index but we want to save the whole thing. Thats why this line is here.
+                        else : data_list.append(data[0]) #sometimes matlab returns things like matlab.double witch you need to index to actuall get the data
+                    except :
+                        data_list.append(data)            
             self.insert_data([args[0], data_list], idx)
             idx += 1 # incrament the data base index.
         self.__conn.commit() #this line commits the feilds to the data base.

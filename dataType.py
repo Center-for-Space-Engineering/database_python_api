@@ -9,13 +9,14 @@ class dataType():
     '''
         This class contatins all the nessicary mappings for class so that we can converte data from one type to another type.
     '''
-    def __init__(self, dataGroup, coms = None):
+    def __init__(self, dataGroup, coms = None, idx_name = ''):
         self.__feilds = {} #this dict contains all the data types that will be saved to the data base
         self.__bit_map = []# this list contains info on how to collect the bits from the bit stream. 
         self.__convert_map = {} #this dict contatins types that need to be mapped together. The MSB is the key.  
         self.__data_group = dataGroup
         self.__logger = loggerCustom(f"logs/dataType_{self.__data_group}.txt") 
         _ = coms  # this will be self.__coms one day just not using it right now
+        self.__idx_name = idx_name
 
     def add_feild(self, name, bits, convert):
         '''
@@ -61,3 +62,7 @@ class dataType():
     def get_field_info(self, feild_name):
         # pylint: disable=missing-function-docstring
         return self.__feilds[feild_name]
+    def get_idx_name(self):
+        return self.__idx_name
+    def set_idx_name(self, name):
+        self.__idx_name = name
