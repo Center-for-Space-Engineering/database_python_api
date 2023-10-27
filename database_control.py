@@ -5,11 +5,13 @@
 import sqlite3
 import time
 import pandas as pd
+import matlab.engine # this is so the data base can see the matlab data types
 
 from database_python_api.dataTypesImporter import dataTypeImporter # pylint: disable=e0401
 from database_python_api.dataType import dataType # pylint: disable=e0401
 from logging_system_display_python_api.logger import loggerCustom # pylint: disable=e0401
 from threading_python_api.threadWrapper import threadWrapper # pylint: disable=e0401
+
 
 class DataBaseHandler(threadWrapper):
     '''
@@ -70,6 +72,8 @@ class DataBaseHandler(threadWrapper):
     def create_table(self, args):
         '''
             This function looks to create a table. If the table already exsists if will not create it. 
+
+            NOTE: This function is NOT for other threads to call! Use the create_table_external func.
             args[0] : is the table name
         '''
         table_name = self.__tables[args[0]].get_data_group()
@@ -220,33 +224,31 @@ class DataBaseHandler(threadWrapper):
             message += "</p>"
         self.__logger.send_log("data collected: " + message)
         return message
-    #this is the setter section
-    def create_feild(self, args):
+        #this is the setter section
+    def create_table_external(self, args):
         '''
-            this function creates a new feild in a talbe of the data base
-            args[0] : New table name
-            args[1] : New data feild name
-            args[3] : output feild type 
+            This function creates a new feild in a talbe of the data base
+            NOTE: This function is for other threads to call!
+            
+            Inputs:
+                args[0] : dict of new table to make
         '''
-        table_name = args[0]
-        name = args[1]
-        out_feild_type = args[2]
-        new_data_type = dataType(table_name, self.__coms)
 
-        if 'list ' not in out_feild_type:
-            new_data_type.add_feild(name, 0, out_feild_type)
-        else :
-            new_data_type.add_feild('index_internal', 0, 'int')
-            new_data_type.add_feild(name, 0, out_feild_type.replace('list ', ''))
-            new_data_type.add_feild('Data_group', 0, 'string')
+        for key in args[0]:
+            table_name = key
+            new_data_type = dataType(table_name, self.__coms)
+            for feilds_list in args[0][key]:
+                if 'list ' not in feilds_list[1]:
+                    new_data_type.add_feild(feilds_list[0], 0, feilds_list[1])
+                else :
+                    new_data_type.add_feild('index_internal', 0, 'int')
+                    new_data_type.add_feild(feilds_list[0], 0, feilds_list[1].replace('list ', ''))
+                    new_data_type.add_feild('Data_group', 0, 'string')
+                
+            self.__tables[table_name] = new_data_type
 
-        self.__tables[table_name] = new_data_type
-
-        self.create_table([table_name]) #add the table
-
-        self.create_feilds_archived([table_name])
-
-        return True  
+            self.create_table([table_name]) #add the table
+            self.create_feilds_archived([table_name])     
     def create_feilds_archived(self, args):
         '''
             This function creates an archived in the data base for all the 
@@ -272,16 +274,16 @@ class DataBaseHandler(threadWrapper):
             feild_info = self.__tables[table_name].get_field_info(feild)
             self.__dataFile.write(f"    {feild}:{feild_info[0]} > {feild_info[1]}\n")
         self.__dataFile.close()
-    def add_save_data_group(self, args):
+    def save_data_group(self, args):
         '''
             This function takes in a list of data to store as a group
 
             ARGS:
                 args[0] : table name
-                args[1] : group (ussally the input to produce the data)
-                args[2] : list of data to store
-            NOTE: If there is no group the logic will infur that it is NOT a list type.
+                args[1] : dict of data to store
         '''
+
+        start_time = time.time()
 
         #get the index
         self.__c.execute(f"SELECT * FROM {args[0]} WHERE table_idx = (SELECT max(table_idx) FROM {args[0]})")
@@ -290,39 +292,23 @@ class DataBaseHandler(threadWrapper):
             idx = 0
         else :
             idx  = row[0][0] + 1
+        
+        key = next(iter(args[1])) #get the key of the first index 
+        data_length = len(args[1][key]) #get the length of the expected data 
 
-        #need to check if it is a string type or not. If it is a string type then we need to save it in groups and not by idivual values. 
-        is_str_out = False
-        feilds = self.get_feilds([self.get_data_type([args[0]])]) 
-        for var in feilds:
-            if ('index_internal' in var) or ('Data_group' in var): pass #igron our internal types
-            elif 'string' in feilds[var][1]: is_str_out = True # its a string so set it to true
-        if not 'NO GROUP' in args[1]: #this guy handles when a single input produces many outputs.
-            if(is_str_out): 
-                for out_str in args[2]:
-                    self.insert_data([args[0], [out_str, 0, args[1]]], idx_in= idx)
-                    idx += 1
-            else :
-                for cell in args[2]:
-                    sub_idx = 0
-                    for data in cell:
-                        self.insert_data([args[0], [data, sub_idx, args[1]]], idx_in= idx)
-                        idx += 1
-                        sub_idx += 1
-            self.__conn.commit()
-            self.__coms.print_message(f"Inserted Data groug {args[1]}.")
-        else :
-            if(is_str_out): 
-                for out_str in args[2]:
-                    self.insert_data([args[0], [out_str]], idx_in= idx)
-                    idx += 1
-            else :
-                for cell in args[2]:
-                    for val in cell:
-                        self.insert_data([args[0], [val]], idx_in = idx) # this is the command to save a single list of values.
-                        idx += 1
-            self.__conn.commit()
-            self.__coms.print_message(f"Inserted Data.")
+        for i in range(data_length): #for all the feilds loop throught hte data and get it added to a list to be inserted. 
+            data_list = []
+            for feild in args[1]:
+                data = args[1][feild][i]
+                try:
+                    if(isinstance(data, str)): data_list.append(data) #strings can be index but we want to save the whole thing. Thats why this line is here.
+                    else : data_list.append(data[0]) #sometimes matlab returns things like matlab.double witch you need to index to actuall get the data
+                except :
+                    data_list.append(data)            
+            self.insert_data([args[0], data_list], idx)
+            idx += 1 # incrament the data base index.
+        self.__conn.commit() #this line commits the feilds to the data base.
+        self.__coms.print_message(f"Inserted Data time {time.time() - start_time}.")
     def get_data_large(self, args):
         '''
             args is a list where the fist index is the table name 
