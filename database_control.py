@@ -332,7 +332,6 @@ class DataBaseHandler(threadWrapper):
                 pandas data obj
             NOTE: This function IS for larg amouts of data! 
         '''
-        message = f"<h1>{args[0]}: " 
         try :
             #from and run db command
             db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx"
@@ -346,7 +345,6 @@ class DataBaseHandler(threadWrapper):
         #get cols 
         cols = ["Table Index "] # add table_idx to the cols lis
         cols += self.get_feilds_list([self.get_data_type([args[0]])])
-        message += f"{cols}</h1> "
         #fetch and convert the data into a pandas data frame.
         data = pd.DataFrame(self.__c.fetchall(), columns=cols)  
         return data
