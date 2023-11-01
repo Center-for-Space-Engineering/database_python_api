@@ -311,7 +311,8 @@ class DataBaseHandler(threadWrapper):
                 pass #no timestamp given
             for feild in args[1]:
                 if feild != idx_feild_name:
-                    data = args[1][feild][i]
+                    if args[1][feild][i] == 'NaN': data = 0
+                    else : data = args[1][feild][i]
                     try:
                         if(isinstance(data, str)): data_list.append(data) #strings can be index but we want to save the whole thing. Thats why this line is here.
                         else : data_list.append(data[0]) #sometimes matlab returns things like matlab.double witch you need to index to actuall get the data
