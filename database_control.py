@@ -287,6 +287,7 @@ class DataBaseHandler(threadWrapper):
             ARGS:
                 args[0] : table name
                 args[1] : dict of data to store
+                args[2] : threaad id (used for reporting)
         '''
 
         start_time = time.time()
@@ -294,6 +295,7 @@ class DataBaseHandler(threadWrapper):
         #get the index
         self.__c.execute(f"SELECT * FROM {args[0]} WHERE table_idx = (SELECT max(table_idx) FROM {args[0]})")
         row = pd.DataFrame(self.__c.fetchall()) 
+        thread_name = args[2]
         if row.empty:
             idx = 0
         else :
@@ -319,6 +321,7 @@ class DataBaseHandler(threadWrapper):
                     except :
                         data_list.append(data)            
             self.insert_data([args[0], data_list], idx)
+            self.__coms.send_request('Gui handler (SysEmuo)', ['make_save_report', thread_name, (i / data_list) * 100])
             idx += 1 # incrament the data base index.
         self.__conn.commit() #this line commits the feilds to the data base.
         self.__coms.print_message(f"Inserted Data time {time.time() - start_time}.")
