@@ -321,7 +321,7 @@ class DataBaseHandler(threadWrapper):
                     except :
                         data_list.append(data)            
             self.insert_data([args[0], data_list], idx)
-            self.__coms.send_request('Gui handler (SysEmuo)', ['make_save_report', thread_name, (i / data_list) * 100])
+            self.__coms.send_request('Gui handler (SysEmuo)', ['make_save_report', thread_name, ((i + 1) / data_length) * 100])
             idx += 1 # incrament the data base index.
         self.__conn.commit() #this line commits the feilds to the data base.
         self.__coms.print_message(f"Inserted Data time {time.time() - start_time}.")
