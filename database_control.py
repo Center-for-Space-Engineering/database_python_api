@@ -5,7 +5,6 @@
 import sqlite3
 import time
 import pandas as pd
-import matlab.engine # this is so the data base can see the matlab data types
 import datetime
 
 from database_python_api.dataTypesImporter import dataTypeImporter # pylint: disable=e0401
