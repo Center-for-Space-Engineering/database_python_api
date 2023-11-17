@@ -5,7 +5,7 @@
 import sqlite3
 import time
 import pandas as pd
-import datetime
+from termcolor import colored
 
 from database_python_api.dataTypesImporter import dataTypeImporter # pylint: disable=e0401
 from database_python_api.dataType import dataType # pylint: disable=e0401
@@ -24,7 +24,7 @@ class DataBaseHandler(threadWrapper):
         NOTE: When running multi threaded, only the __init__, makeRequest, getRequest, 
         and run function should be called by out side classes and threads. 
     '''   
-    def __init__(self, coms, db_name = 'database/database_file'):
+    def __init__(self, coms, db_name = 'database/database_file', is_gui = False):
         #make class matiance vars
         self.__logger = loggerCustom("logs/database_log_file.txt")
         self.__coms = coms
@@ -32,6 +32,7 @@ class DataBaseHandler(threadWrapper):
         self.__conn = None
         self.__c = None
         self.__tables = None
+        self.__is_gui = False
 
         #make Maps for db creation
         self.__type_map = { #the point of this dictinary is to map the type names from the
@@ -40,7 +41,8 @@ class DataBaseHandler(threadWrapper):
             "float" : "FLOAT(10)", # NOTE: the (#) is the perscition of the float. 
             "string" : "TEXT",
             "bool" : "BOOLEAN",
-            "bigint" : "BIGINT"
+            "bigint" : "BIGINT", 
+            "byte" : "VARBINARY",
         } #  NOTE: this dict makes the .dtobj file syntax match sqlite3 syntax.
 
         #Start the threaed wrapper for  the process
@@ -216,7 +218,7 @@ class DataBaseHandler(threadWrapper):
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
             return "<p> Error getting data </p>"
         #get cols 
-        cols = ["Table Index "] # add table_idx to the cols lis
+        cols = ["Table Index"] # add table_idx to the cols lis
         cols += self.get_feilds_list([self.get_data_type([args[0]])])
         message += f"{cols}</h1> "
         #fetch and convert the data into a pandas data frame.
@@ -320,10 +322,10 @@ class DataBaseHandler(threadWrapper):
                     except :
                         data_list.append(data)            
             self.insert_data([args[0], data_list], idx)
-            self.__coms.send_request('Gui handler (SysEmuo)', ['make_save_report', thread_name, ((i + 1) / data_length) * 100])
+            if self.__is_gui : self.__coms.send_request('Gui handler (SysEmuo)', ['make_save_report', thread_name, ((i + 1) / data_length) * 100])
             idx += 1 # incrament the data base index.
         self.__conn.commit() #this line commits the feilds to the data base.
-        self.__coms.print_message(f"Inserted Data time {time.time() - start_time}.")
+        self.__coms.print_message(f"Inserted Data time: " + colored(f"{time.time() - start_time}", 'blue') + ".")
     def get_data_large(self, args):
         '''
             args is a list where the fist index is the table name 
@@ -331,13 +333,22 @@ class DataBaseHandler(threadWrapper):
             ARGS:
                 [0] table name
                 [1] table_idx (starting indx)
+                [2] Max rows allowed to be fecthed at one time
             RETURNS:
                 pandas data obj
             NOTE: This function IS for larg amouts of data! 
         '''
         try :
             #from and run db command
-            db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx"
+            max_rows = 0
+            have_max = False
+            try :
+                max_rows = args[2]
+                have_max = True
+            except :
+                pass
+            if have_max : db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx LIMIT  {max_rows}"
+            else : db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx"
             self.__c.execute(db_command)
             self.__logger.send_log("Query command recived: "  + db_command)
             self.__coms.print_message("Query command recived: "  + db_command, 2)
@@ -346,8 +357,52 @@ class DataBaseHandler(threadWrapper):
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
             return "<p> Error getting data </p>"
         #get cols 
-        cols = ["Table Index "] # add table_idx to the cols lis
+        cols = ["Table Index"] # add table_idx to the cols lis
         cols += self.get_feilds_list([self.get_data_type([args[0]])])
         #fetch and convert the data into a pandas data frame.
         data = pd.DataFrame(self.__c.fetchall(), columns=cols)  
         return data
+    def save_byte_data(self, args):
+        '''
+            This function is in charge of saving byte data (VARBINARY)
+
+            args:
+                [0] : table name
+                [1] : list of bytes
+                [2] : caller thread name
+        '''
+        start_time = time.time()
+
+        #get the index
+        self.__c.execute(f"SELECT * FROM {args[0]} WHERE table_idx = (SELECT max(table_idx) FROM {args[0]})")
+        row = pd.DataFrame(self.__c.fetchall()) 
+        thread_name = args[2]
+        if row.empty:
+            idx = 0
+        else :
+            idx  = row[0][0] + 1
+        
+        key = next(iter(args[1])) #get the key of the first index 
+        data_length = len(args[1][key]) #get the length of the expected data 
+        idx_feild_name = self.get_data_type([args[0]]).get_idx_name()
+
+        for i in range(data_length): #for all the feilds loop throught hte data and get it added to a list to be inserted. 
+            data_list = []
+            try:
+                idx = args[1][idx_feild_name][i][0] #if we have a time stamp lets use that as our index
+            except :
+                pass #no timestamp given
+            for feild in args[1]:
+                if feild != idx_feild_name:
+                    if args[1][feild][i] == 'NaN': data = 0
+                    else : data = args[1][feild][i]
+                    try:
+                        if(isinstance(data, str)): data_list.append(data) #strings can be index but we want to save the whole thing. Thats why this line is here.
+                        else : data_list.append(data[0]) #sometimes matlab returns things like matlab.double witch you need to index to actuall get the data
+                    except :
+                        data_list.append(data)            
+            self.insert_data([args[0], data_list], idx)
+            if self.__is_gui : self.__coms.send_request('Gui handler (SysEmuo)', ['make_save_report', thread_name, ((i + 1) / data_length) * 100])
+            idx += 1 # incrament the data base index.
+        self.__conn.commit() #this line commits the feilds to the data base.
+        self.__coms.print_message(f"Inserted Data time: " + colored(f"{time.time() - start_time})", 'blue') + ".")
