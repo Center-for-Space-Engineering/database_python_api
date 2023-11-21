@@ -166,7 +166,7 @@ class DataBaseHandler(threadWrapper):
         # pylint: disable=missing-function-docstring
         message = "<! DOCTYPE html>\n<html>\n<body>\n<h1>DataBase Tables</h1>"
         for table in self.__tables: 
-            message +=f"<p><strong>Table:</strong> {table}</p>\n" # pylint: disable=r1713 
+            message +=f"<table_name>Table: {table}</table_name>\n" # pylint: disable=r1713 
         message += "</body>\n</html>"
         return message
     def get_tables_str_list(self):
