@@ -46,7 +46,23 @@ class DataBaseHandler(threadWrapper):
         } #  NOTE: this dict makes the .dtobj file syntax match sqlite3 syntax.
 
         #Start the threaed wrapper for  the process
-        super().__init__()
+        self.__function_dict = {
+            'create_data_base' : self.create_data_base,
+            'create_table' : self.create_table,
+            'insert_data' : self.insert_data,
+            'get_tables_html' : self.get_tables_html,
+            'get_tables_str_list' : self.get_tables_str_list,
+            'get_data_type' : self.get_data_type,
+            'get_feilds' : self.get_feilds,
+            'get_feilds_list' : self.get_feilds_list,
+            'get_data' : self.get_data,
+            'create_table_external' : self.create_table_external,
+            'create_feilds_archived' : self.create_feilds_archived,
+            'save_data_group' : self.save_data_group,
+            'get_data_large' : self.get_data_large,
+            'save_byte_data' : self.save_byte_data
+        }
+        super().__init__(self.__function_dict)
 
         #send request to parent class to make the data base
         super().make_request('create_data_base', [])
