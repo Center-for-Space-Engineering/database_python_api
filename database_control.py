@@ -80,6 +80,7 @@ class DataBaseHandler(threadWrapper):
         '''
         table_name = self.__tables[args[0]].get_data_group()
         table_feilds = self.__tables[args[0]].get_fields()
+
         db_command = f"CREATE TABLE IF NOT EXISTS {table_name} ("
         #this line is add as a way to index the data base
         db_command += "[table_idx] BOOLEAN PRIMARY KEY" 
@@ -94,7 +95,9 @@ class DataBaseHandler(threadWrapper):
             if feild_name!= "igrnoed feild" and table_feilds[feild_name][1] != "NONE":
                 # adding the ", " here means we don't have an extra one on the last line.
                 db_command += ", "
-                db_command += f"[{feild_name}] {self.__type_map[table_feilds[feild_name][1]]}" 
+                if table_feilds[feild_name][1] != 'byte': db_command += f"[{feild_name}] {self.__type_map[table_feilds[feild_name][1]]}"
+                #if it is a byte type we need to set the size of the feild
+                else: db_command += f"[{feild_name}] {self.__type_map[table_feilds[feild_name][1]]}({self.__tables[args[0]].get_field_info(feild_name)[0]})" # this self.__tables[args[0]].get_field_info(feild_name)[0]} gets the bit length out of the data type class
         db_command += ")"
 
         #try to make the table in the data base
@@ -149,6 +152,7 @@ class DataBaseHandler(threadWrapper):
         db_command += ");"
         try:
             self.__c.execute(db_command)
+            self.__logger.send_log(" Command send to db: " + db_command)
         except Exception as error:
             self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0) 
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
@@ -166,7 +170,7 @@ class DataBaseHandler(threadWrapper):
         # pylint: disable=missing-function-docstring
         message = "<! DOCTYPE html>\n<html>\n<body>\n<h1>DataBase Tables</h1>"
         for table in self.__tables: 
-            message +=f"<table_name>Table: {table}</table_name>\n" # pylint: disable=r1713 
+            message +=f"<table_name>Table: {table}</table_name><p></p>" # pylint: disable=r1713
         message += "</body>\n</html>"
         return message
     def get_tables_str_list(self):
@@ -222,7 +226,7 @@ class DataBaseHandler(threadWrapper):
         cols += self.get_feilds_list([self.get_data_type([args[0]])])
         message += f"{cols}</h1> "
         #fetch and convert the data into a pandas data frame.
-        data = pd.DataFrame(self.__c.fetchall(), columns=cols)      
+        data = pd.DataFrame(self.__c.fetchall(), columns=cols)
         for idx in range(len(data)):
             message += "<p>"
             for i in range(len(cols) - 1): #itrate for all but last col
@@ -232,6 +236,7 @@ class DataBaseHandler(threadWrapper):
         self.__logger.send_log("data collected: " + message)
         return message
         #this is the setter section
+    #Functions for DB control (Ussally through requests made by other threads)
     def create_table_external(self, args):
         '''
             This function creates a new feild in a talbe of the data base
@@ -366,6 +371,8 @@ class DataBaseHandler(threadWrapper):
         '''
             This function is in charge of saving byte data (VARBINARY)
 
+            NOTE: This is not a genreal save like the insert data, it is use case spesific. 
+
             args:
                 [0] : table name
                 [1] : list of bytes
@@ -383,26 +390,35 @@ class DataBaseHandler(threadWrapper):
             idx  = row[0][0] + 1
         
         key = next(iter(args[1])) #get the key of the first index 
-        data_length = len(args[1][key]) #get the length of the expected data 
-        idx_feild_name = self.get_data_type([args[0]]).get_idx_name()
+        data_length = len(args[1][key]) #get the length of the expected data
 
-        for i in range(data_length): #for all the feilds loop throught hte data and get it added to a list to be inserted. 
-            data_list = []
+        for i in range(data_length): #for all the feilds loop throught the data and get it added to a list to be inserted.
+            db_command = f"INSERT INTO {args[0]} (table_idx"
+            #get the data type obj and then get the feilds list
+            feilds = self.get_feilds([self.get_data_type([args[0]])]) 
+            for feild_name in feilds:
+                #we dont need feilds for igrnoed data feilds
+                if feild_name!= "igrnoed feild" and feilds[feild_name][1] != "NONE" : 
+                    db_command += ", "
+                    db_command += f"{feild_name}"
+            db_command +=  ") "
+            byte_str = ''.join(format(x, '02x') for x in args[1][key][i])
+            db_command += f"VALUES ({idx}, '{byte_str}')" # this self.__tables[args[0]].get_field_info(feild_name)[0]} gets the bit length out of the data type class
+
             try:
-                idx = args[1][idx_feild_name][i][0] #if we have a time stamp lets use that as our index
-            except :
-                pass #no timestamp given
-            for feild in args[1]:
-                if feild != idx_feild_name:
-                    if args[1][feild][i] == 'NaN': data = 0
-                    else : data = args[1][feild][i]
-                    try:
-                        if(isinstance(data, str)): data_list.append(data) #strings can be index but we want to save the whole thing. Thats why this line is here.
-                        else : data_list.append(data[0]) #sometimes matlab returns things like matlab.double witch you need to index to actuall get the data
-                    except :
-                        data_list.append(data)            
-            self.insert_data([args[0], data_list], idx)
-            if self.__is_gui : self.__coms.send_request('Gui handler (SysEmuo)', ['make_save_report', thread_name, ((i + 1) / data_length) * 100])
+                self.__c.execute(db_command)
+                self.__logger.send_log(" Command send to db: " + db_command)
+            except Exception as error:
+                self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0) 
+                self.__logger.send_log(str(error) + " Command send to db: " + db_command)
+
+                if 'UNIQUE constraint failed' in str(error):
+                    self.__coms.print_message(f" Dublicate  time stamp {idx}") 
+                    self.__logger.send_log(f" Dublicate  time stamp {idx}")
+                else :
+                    # pylint: disable=w0707
+                    # pylint: disable=w0719
+                    raise Exception
             idx += 1 # incrament the data base index.
         self.__conn.commit() #this line commits the feilds to the data base.
-        self.__coms.print_message(f"Inserted Data time: " + colored(f"{time.time() - start_time})", 'blue') + ".")
+        self.__coms.print_message(f"Inserted Data time: " + colored(f"{time.time() - start_time}", 'blue') + ".")
