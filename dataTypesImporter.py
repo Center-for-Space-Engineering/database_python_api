@@ -5,6 +5,9 @@
 from database_python_api.dataType import dataType # pylint: disable=e0401
 from logging_system_display_python_api.logger import loggerCustom # pylint: disable=e0401
 
+#import DTO for comminicating internally
+from DTOs.logger_dto import logger_dto
+from DTOs.print_message_dto import print_message_dto
 
 class dataTypeImporter():
     '''
@@ -19,9 +22,11 @@ class dataTypeImporter():
         try:
             self.__dataFile = open("database/dataTypes.dtobj") # pylint: disable=r1732
             self.__logger.send_log("data types file found.")
-            self.__coms.print_message("data types file found.", 2)
+            dto = print_message_dto("data types file found.")
+            self.__coms.print_message(dto, 2)
         except: # pylint: disable=w0702
-            self.__coms.print_message(" No databasei/dataTypes.dtobj file detected!", 0)   
+            dto = print_message_dto(" No databasei/dataTypes.dtobj file detected!")
+            self.__coms.print_message(dto, 0)   
             self.__logger.send_log(" No database/dataTypes.dtobj file detected!")   
     def pasre_data_types(self):
         '''
@@ -77,8 +82,9 @@ class dataTypeImporter():
                     self.__data_types[current_data_group] = dataType(current_data_group, self.__coms)
                     self.__logger.send_log(f"Created data group {current_data_group}")
 
-        self.__logger.send_log(f"Created data types:\n {self}")   
-        self.__coms.print_message("Created data types.", 2)   
+        self.__logger.send_log(f"Created data types:\n {self}")
+        dto = print_message_dto("Created data types.")  
+        self.__coms.print_message(dto, 2)   
     def get_data_types(self):
         # pylint: disable=missing-function-docstring
         return self.__data_types

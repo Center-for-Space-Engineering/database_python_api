@@ -12,6 +12,11 @@ from database_python_api.dataType import dataType # pylint: disable=e0401
 from logging_system_display_python_api.logger import loggerCustom # pylint: disable=e0401
 from threading_python_api.threadWrapper import threadWrapper # pylint: disable=e0401
 
+#import DTO for comminicating internally
+from DTOs.logger_dto import logger_dto
+from DTOs.print_message_dto import print_message_dto
+
+
 
 class DataBaseHandler(threadWrapper):
     '''
@@ -86,7 +91,8 @@ class DataBaseHandler(threadWrapper):
         for table in self.__tables:
             self.create_table([table])
         self.__logger.send_log("Created database:\n" + self.get_tables_html())
-        self.__coms.print_message("Created database", 2)   
+        dto = print_message_dto("Created database")
+        self.__coms.print_message(dto, 2)   
     def create_table(self, args):
         '''
             This function looks to create a table. If the table already exsists if will not create it. 
@@ -120,11 +126,14 @@ class DataBaseHandler(threadWrapper):
         try :  
             self.__c.execute(db_command)
             self.__logger.send_log("Created table: " + db_command)
-            self.__coms.print_message("Created table: " + db_command, 2)
+            dto = print_message_dto("Created table: " + db_command)
+            self.__coms.print_message(dto, 2)
         except Exception as error: # pylint: disable=w0718
-            self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0) 
+            dto = print_message_dto(str(error) + " Command send to db: " + db_command)
+            self.__coms.print_message(dto, 0) 
             self.__logger.send_log("Failed to created table: " + db_command + str(error))
-            self.__coms.print_message("Failed to created table: " + db_command + str(error), 0)
+            dto = print_message_dto("Failed to created table: " + db_command + str(error))
+            self.__coms.print_message(dto, 0)
     def insert_data(self, args, idx_in = -1):
         '''
             This func takes in the table_name to insert and a list of data, 
@@ -170,11 +179,13 @@ class DataBaseHandler(threadWrapper):
             self.__c.execute(db_command)
             self.__logger.send_log(" Command send to db: " + db_command)
         except Exception as error:
-            self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0) 
+            dto = print_message_dto(str(error) + " Command send to db: " + db_command)
+            self.__coms.print_message(dto, 0) 
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
 
             if 'UNIQUE constraint failed' in str(error):
-                self.__coms.print_message(f" Dublicate  time stamp {idx}") 
+                dto = print_message_dto(f" Dublicate  time stamp {idx}")
+                self.__coms.print_message(dto) 
                 self.__logger.send_log(f" Dublicate  time stamp {idx}")
             else :
                 # pylint: disable=w0707
@@ -232,9 +243,11 @@ class DataBaseHandler(threadWrapper):
             db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx"
             self.__c.execute(db_command)
             self.__logger.send_log("Query command recived: "  + db_command)
-            self.__coms.print_message("Query command recived: "  + db_command, 2)
+            dto = print_message_dto("Query command recived: "  + db_command)
+            self.__coms.print_message(dto, 2)
         except Exception as error: # pylint: disable=w0718
-            self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0)
+            dto = print_message_dto(str(error) + " Command send to db: " + db_command)
+            self.__coms.print_message(dto, 0)
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
             return "<p> Error getting data </p>"
         #get cols 
@@ -346,7 +359,8 @@ class DataBaseHandler(threadWrapper):
             if self.__is_gui : self.__coms.send_request('Gui handler (SysEmuo)', ['make_save_report', thread_name, ((i + 1) / data_length) * 100])
             idx += 1 # incrament the data base index.
         self.__conn.commit() #this line commits the feilds to the data base.
-        self.__coms.print_message(f"Inserted Data time: " + colored(f"{time.time() - start_time}", 'blue') + ".")
+        dto = print_message_dto(f"Inserted Data time: " + colored(f"{time.time() - start_time}", 'blue') + ".")
+        self.__coms.print_message(dto)
     def get_data_large(self, args):
         '''
             args is a list where the fist index is the table name 
@@ -372,9 +386,11 @@ class DataBaseHandler(threadWrapper):
             else : db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx"
             self.__c.execute(db_command)
             self.__logger.send_log("Query command recived: "  + db_command)
-            self.__coms.print_message("Query command recived: "  + db_command, 2)
+            dto = print_message_dto("Query command recived: "  + db_command)
+            self.__coms.print_message(dto, 2)
         except Exception as error: # pylint: disable=w0718
-            self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0)
+            dto = print_message_dto(str(error) + " Command send to db: " + db_command)
+            self.__coms.print_message(dto, 0)
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
             return "<p> Error getting data </p>"
         #get cols 
@@ -425,11 +441,13 @@ class DataBaseHandler(threadWrapper):
                 self.__c.execute(db_command)
                 self.__logger.send_log(" Command send to db: " + db_command)
             except Exception as error:
-                self.__coms.print_message(str(error) + " Command send to db: " + db_command, 0) 
+                dto = print_message_dto(str(error) + " Command send to db: " + db_command)
+                self.__coms.print_message(dto, 0) 
                 self.__logger.send_log(str(error) + " Command send to db: " + db_command)
 
                 if 'UNIQUE constraint failed' in str(error):
-                    self.__coms.print_message(f" Dublicate  time stamp {idx}") 
+                    dto = print_message_dto(f" Dublicate  time stamp {idx}")
+                    self.__coms.print_message(dto)
                     self.__logger.send_log(f" Dublicate  time stamp {idx}")
                 else :
                     # pylint: disable=w0707
@@ -437,4 +455,5 @@ class DataBaseHandler(threadWrapper):
                     raise Exception
             idx += 1 # incrament the data base index.
         self.__conn.commit() #this line commits the feilds to the data base.
-        self.__coms.print_message(f"Inserted Data time: " + colored(f"{time.time() - start_time}", 'blue') + ".")
+        dto = print_message_dto(f"Inserted Data time: " + colored(f"{time.time() - start_time}", 'blue') + ".")
+        self.__coms.print_message(dto)
