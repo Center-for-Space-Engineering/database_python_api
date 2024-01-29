@@ -5,7 +5,6 @@
 import sqlite3
 import time
 import pandas as pd
-from termcolor import colored
 
 from database_python_api.dataTypesImporter import dataTypeImporter # pylint: disable=e0401
 from database_python_api.dataType import dataType # pylint: disable=e0401
@@ -262,7 +261,7 @@ class DataBaseHandler(threadWrapper):
                 message += f"{data.iloc[idx,i]},"
                 message += f"{data.iloc[idx,len(cols) - 1]}"# add last col with out ,
             message += "</p>"
-        self.__logger.send_log("data collected: " + message)
+        self.__logger.send_log("data collected for server. (get_data_command)")
         return message
         #this is the setter section
     #Functions for DB control (Ussally through requests made by other threads)
@@ -359,7 +358,7 @@ class DataBaseHandler(threadWrapper):
             if self.__is_gui : self.__coms.send_request('Gui handler (SysEmuo)', ['make_save_report', thread_name, ((i + 1) / data_length) * 100])
             idx += 1 # incrament the data base index.
         self.__conn.commit() #this line commits the feilds to the data base.
-        dto = print_message_dto(f"Inserted Data time: " + colored(f"{time.time() - start_time}", 'blue') + ".")
+        dto = print_message_dto(f"Inserted Data time: {time.time() - start_time}.")
         self.__coms.print_message(dto)
     def get_data_large(self, args):
         '''
@@ -455,5 +454,5 @@ class DataBaseHandler(threadWrapper):
                     raise Exception
             idx += 1 # incrament the data base index.
         self.__conn.commit() #this line commits the feilds to the data base.
-        dto = print_message_dto(f"Inserted Data time: " + colored(f"{time.time() - start_time}", 'blue') + ".")
+        dto = print_message_dto(f"Inserted Data time: {time.time() - start_time}.")
         self.__coms.print_message(dto)
