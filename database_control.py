@@ -177,7 +177,7 @@ class DataBaseHandler(threadWrapper):
         db_command += ");"
         try:
             self.__c.execute(db_command)
-            self.__logger.send_log(" Command send to db: " + db_command)
+            self.__logger.send_log(" Insert data command sent to database. ")
         except Exception as error:
             dto = print_message_dto(str(error) + " Command send to db: " + db_command)
             self.__coms.print_message(dto, 0) 
@@ -439,7 +439,7 @@ class DataBaseHandler(threadWrapper):
 
             try:
                 self.__c.execute(db_command)
-                self.__logger.send_log(" Command send to db: " + db_command)
+                self.__logger.send_log(" Insert command (byte) sent to data base ")
             except Exception as error:
                 dto = print_message_dto(str(error) + " Command send to db: " + db_command)
                 self.__coms.print_message(dto, 0) 
