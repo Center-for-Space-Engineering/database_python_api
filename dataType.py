@@ -63,6 +63,8 @@ class dataType():
         # pylint: disable=missing-function-docstring
         return self.__feilds[feild_name]
     def get_idx_name(self):
+        # pylint: disable=missing-function-docstring
         return self.__idx_name
     def set_idx_name(self, name):
+        # pylint: disable=missing-function-docstring
         self.__idx_name = name

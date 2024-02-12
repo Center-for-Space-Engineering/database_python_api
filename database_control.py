@@ -12,8 +12,7 @@ from logging_system_display_python_api.logger import loggerCustom # pylint: disa
 from threading_python_api.threadWrapper import threadWrapper # pylint: disable=e0401
 
 #import DTO for comminicating internally
-from DTOs.logger_dto import logger_dto
-from DTOs.print_message_dto import print_message_dto
+from DTOs.print_message_dto import print_message_dto # pylint: disable=e0401
 
 
 
@@ -36,7 +35,7 @@ class DataBaseHandler(threadWrapper):
         self.__conn = None
         self.__c = None
         self.__tables = None
-        self.__is_gui = False
+        self.__is_gui = is_gui
 
         #make Maps for db creation
         self.__type_map = { #the point of this dictinary is to map the type names from the
@@ -70,6 +69,7 @@ class DataBaseHandler(threadWrapper):
 
         #send request to parent class to make the data base
         super().make_request('create_data_base', [])
+        self.__dataFile = None
     def create_data_base(self):
         '''
         Makes the data base.
@@ -116,9 +116,11 @@ class DataBaseHandler(threadWrapper):
             if feild_name!= "igrnoed feild" and table_feilds[feild_name][1] != "NONE":
                 # adding the ", " here means we don't have an extra one on the last line.
                 db_command += ", "
-                if table_feilds[feild_name][1] != 'byte': db_command += f"[{feild_name}] {self.__type_map[table_feilds[feild_name][1]]}"
+                if table_feilds[feild_name][1] != 'byte':
+                    db_command += f"[{feild_name}] {self.__type_map[table_feilds[feild_name][1]]}"
                 #if it is a byte type we need to set the size of the feild
-                else: db_command += f"[{feild_name}] {self.__type_map[table_feilds[feild_name][1]]}({self.__tables[args[0]].get_field_info(feild_name)[0]})" # this self.__tables[args[0]].get_field_info(feild_name)[0]} gets the bit length out of the data type class
+                else :
+                    db_command += f"[{feild_name}] {self.__type_map[table_feilds[feild_name][1]]}({self.__tables[args[0]].get_field_info(feild_name)[0]})" # this self.__tables[args[0]].get_field_info(feild_name)[0]} gets the bit length out of the data type class
         db_command += ")"
 
         #try to make the table in the data base
@@ -177,7 +179,7 @@ class DataBaseHandler(threadWrapper):
         try:
             self.__c.execute(db_command)
             self.__logger.send_log(" Insert data command sent to database. ")
-        except Exception as error:
+        except Exception as error: # pylint: disable=w0718
             dto = print_message_dto(str(error) + " Command send to db: " + db_command)
             self.__coms.print_message(dto, 0) 
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
@@ -279,8 +281,10 @@ class DataBaseHandler(threadWrapper):
             new_data_type = dataType(table_name, self.__coms, idx_name=args[0][key][0][1]) #access the dictionary for the current table then acces the first list then access first memvber of the list with is our idx name. 
             input_idx = None
             for feilds_list in args[0][key]:
-                if not ('input_idx_db' in feilds_list[0]): new_data_type.add_feild(feilds_list[0], 0, feilds_list[1])
-                else : input_idx = feilds_list
+                if not ('input_idx_db' in feilds_list[0]): #pylint: disable=c0325
+                    new_data_type.add_feild(feilds_list[0], 0, feilds_list[1])
+                else : 
+                    input_idx = feilds_list
                 
             self.__tables[table_name] = new_data_type
 
@@ -301,7 +305,8 @@ class DataBaseHandler(threadWrapper):
         #Open the archived file
         self.__dataFile = open("database/dataTypes.dtobj", 'a') # pylint: disable=r1732
         self.__dataFile.write(table_name + "\n")
-        if args[1] != None: self.__dataFile.write(f"    {args[1][0]}:{args[1][1]}\n")
+        if args[1] is not None:
+            self.__dataFile.write(f"    {args[1][0]}:{args[1][1]}\n")
         for feild in table_feilds:
             feild_info = self.__tables[table_name].get_field_info(feild)
             self.__dataFile.write(f"    {feild}:{feild_info[0]} > {feild_info[1]}\n")
@@ -309,7 +314,8 @@ class DataBaseHandler(threadWrapper):
         #Open the archived back up file
         self.__dataFile = open("database/dataTypes_backup.dtobj", 'a') # pylint: disable=r1732
         self.__dataFile.write(table_name + "\n")
-        if args[1] != None: self.__dataFile.write(f"    {args[1][0]}:{args[1][1]}\n")
+        if args[1] is not None:
+            self.__dataFile.write(f"    {args[1][0]}:{args[1][1]}\n")
         for feild in table_feilds:
             feild_info = self.__tables[table_name].get_field_info(feild)
             self.__dataFile.write(f"    {feild}:{feild_info[0]} > {feild_info[1]}\n")
@@ -343,19 +349,23 @@ class DataBaseHandler(threadWrapper):
             data_list = []
             try:
                 idx = args[1][idx_feild_name][i][0] #if we have a time stamp lets use that as our index
-            except :
+            except : # pylint: disable=w0702
                 pass #no timestamp given
             for feild in args[1]:
                 if feild != idx_feild_name:
-                    if args[1][feild][i] == 'NaN': data = 0
+                    if args[1][feild][i] == 'NaN':
+                        data = 0
                     else : data = args[1][feild][i]
                     try:
-                        if(isinstance(data, str)): data_list.append(data) #strings can be index but we want to save the whole thing. Thats why this line is here.
-                        else : data_list.append(data[0]) #sometimes matlab returns things like matlab.double witch you need to index to actuall get the data
-                    except :
+                        if isinstance(data, str):
+                            data_list.append(data) #strings can be index but we want to save the whole thing. Thats why this line is here.
+                        else :
+                            data_list.append(data[0]) #sometimes matlab returns things like matlab.double witch you need to index to actuall get the data
+                    except : # pylint: disable=w0702
                         data_list.append(data)            
             self.insert_data([args[0], data_list], idx)
-            if self.__is_gui : self.__coms.send_request('Gui handler (SysEmuo)', ['make_save_report', thread_name, ((i + 1) / data_length) * 100])
+            if self.__is_gui :
+                self.__coms.send_request('Gui handler (SysEmuo)', ['make_save_report', thread_name, ((i + 1) / data_length) * 100])
             idx += 1 # incrament the data base index.
         self.__conn.commit() #this line commits the feilds to the data base.
         dto = print_message_dto(f"Inserted Data time: {time.time() - start_time}.")
@@ -379,10 +389,12 @@ class DataBaseHandler(threadWrapper):
             try :
                 max_rows = args[2]
                 have_max = True
-            except :
+            except : # pylint: disable=w0702
                 pass
-            if have_max : db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx LIMIT  {max_rows}"
-            else : db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx"
+            if have_max :
+                db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx LIMIT  {max_rows}"
+            else :
+                db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx"
             self.__c.execute(db_command)
             self.__logger.send_log("Query command recived: "  + db_command)
             dto = print_message_dto("Query command recived: "  + db_command)
@@ -414,7 +426,7 @@ class DataBaseHandler(threadWrapper):
         #get the index
         self.__c.execute(f"SELECT * FROM {args[0]} WHERE table_idx = (SELECT max(table_idx) FROM {args[0]})")
         row = pd.DataFrame(self.__c.fetchall()) 
-        thread_name = args[2]
+        _ = args[2] # this is the thread name not used right now but might be used one day. 
         if row.empty:
             idx = 0
         else :
@@ -429,7 +441,7 @@ class DataBaseHandler(threadWrapper):
             feilds = self.get_feilds([self.get_data_type([args[0]])]) 
             for feild_name in feilds:
                 #we dont need feilds for igrnoed data feilds
-                if feild_name!= "igrnoed feild" and feilds[feild_name][1] != "NONE" : 
+                if feild_name!= "igrnoed feild" and feilds[feild_name][1] != "NONE" : #pylint disable=w0718
                     db_command += ", "
                     db_command += f"{feild_name}"
             db_command +=  ") "
@@ -439,7 +451,7 @@ class DataBaseHandler(threadWrapper):
             try:
                 self.__c.execute(db_command)
                 self.__logger.send_log(" Insert command (byte) sent to data base ")
-            except Exception as error:
+            except Exception as error: # pylint: disable=w0718
                 dto = print_message_dto(str(error) + " Command send to db: " + db_command)
                 self.__coms.print_message(dto, 0) 
                 self.__logger.send_log(str(error) + " Command send to db: " + db_command)

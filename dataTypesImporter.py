@@ -6,8 +6,7 @@ from database_python_api.dataType import dataType # pylint: disable=e0401
 from logging_system_display_python_api.logger import loggerCustom # pylint: disable=e0401
 
 #import DTO for comminicating internally
-from DTOs.logger_dto import logger_dto
-from DTOs.print_message_dto import print_message_dto
+from DTOs.print_message_dto import print_message_dto # pylint: disable=e0401
 
 class dataTypeImporter():
     '''
