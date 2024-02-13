@@ -322,7 +322,7 @@ class DataBaseHandler(threadWrapper):
         self.__dataFile.close()
     def save_data_group(self, args):
         '''
-            This function takes in a list of data to store as a group
+            This function takes in a group of data to store as a group
 
             ARGS:
                 args[0] : table name
@@ -405,7 +405,7 @@ class DataBaseHandler(threadWrapper):
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
             return "<p> Error getting data </p>"
         #get cols 
-        cols = ["Table Index"] # add table_idx to the cols lis
+        cols = ["Table Index"] # add table_idx to the cols list
         cols += self.get_feilds_list([self.get_data_type([args[0]])])
         #fetch and convert the data into a pandas data frame.
         data = pd.DataFrame(self.__c.fetchall(), columns=cols)  

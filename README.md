@@ -58,7 +58,7 @@ This class takes the `dataTypes.dtobj` file and then turns it into `dataType` cl
 
 This file defines ALL the data that needs to be pulled out of the bit stream. 
 
-### RULES: #NEEDS UPDATE TO BE EXCEL DRIVEN
+### RULES:
 
 1. Any line holding // is ignored. (basically this is how you comment)
 2. Any line WITHOUT a tab is consider a data group name, and will be stored into the data base as that name.
