@@ -5,14 +5,12 @@
 from database_python_api.dataType import dataType # pylint: disable=e0401
 from logging_system_display_python_api.logger import loggerCustom # pylint: disable=e0401
 
-#import DTO for comminicating internally
+#import DTO for communicating internally
 from DTOs.print_message_dto import print_message_dto # pylint: disable=e0401
 
 class dataTypeImporter():
     '''
         This class is tasked with translating a user defined data type into python classes. 
-        RIGHT NOW: it uses text files.
-        TODO: IT needs to use the exle dictionary files. 
     '''
     def __init__(self, coms=None):
         self.__data_types = {}
@@ -24,10 +22,10 @@ class dataTypeImporter():
             dto = print_message_dto("data types file found.")
             self.__coms.print_message(dto, 2)
         except: # pylint: disable=w0702
-            dto = print_message_dto(" No databasei/dataTypes.dtobj file detected!")
+            dto = print_message_dto(" No database/dataTypes.dtobj file detected!")
             self.__coms.print_message(dto, 0)   
             self.__logger.send_log(" No database/dataTypes.dtobj file detected!")   
-    def pasre_data_types(self):
+    def parse_data_types(self):
         '''
             reads file and then creates the data type classes based on what the file says. 
         '''
@@ -37,20 +35,20 @@ class dataTypeImporter():
                 pass
             else :
                 if ('    ' in line) or ('\t' in line):
-                    if '@' in line: # this is a discontinuos type
+                    if '@' in line: # this is a discontinues type
                         processed = line.replace('  ', "")
                         processed = processed.replace("\n", "")
                         processed = processed.split(":")
                         temp = processed[1].split(">")
                         processed[1] = temp[0]
-                        feild = temp[1].split("@")
-                        processed.append(feild[0])
-                        disCon = feild[1].split('<')
+                        field = temp[1].split("@")
+                        processed.append(field[0])
+                        disCon = field[1].split('<')
 
-                        self.__logger.send_log(f"Decoded type for group {current_data_group} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
-                        self.__data_types[current_data_group].add_feild(processed[0].strip(), processed[1].strip(), processed[2].strip())
-                        #because this is a discontinuos type we need to add it to the list of discontinuos types
-                        self.__data_types[current_data_group].add_conver_map(disCon[0], disCon[1])
+                        self.__logger.send_log(f"Decoded type for group {current_data_group} : field name {processed[0].strip()}, bit length {processed[1].strip()}, conversion typ {processed[2].strip()}")
+                        self.__data_types[current_data_group].add_field(processed[0].strip(), processed[1].strip(), processed[2].strip())
+                        #because this is a discontinues type we need to add it to the list of discontinues types
+                        self.__data_types[current_data_group].add_convert_map(disCon[0], disCon[1])
                     elif 'input_idx_db' in line:
                         line = line.replace("\n", "")
                         processed = line.split(":")
@@ -66,14 +64,14 @@ class dataTypeImporter():
                         else :
                             processed.append("NONE")
                         
-                        self.__logger.send_log(f"Decoded type for group {current_data_group} : feild name {processed[0].strip()}, bit length {processed[1].strip()}, convertion typ {processed[2].strip()}")
-                        self.__data_types[current_data_group].add_feild(processed[0].strip(), processed[1].strip(), processed[2].strip())
+                        self.__logger.send_log(f"Decoded type for group {current_data_group} : field name {processed[0].strip()}, bit length {processed[1].strip()}, conversion typ {processed[2].strip()}")
+                        self.__data_types[current_data_group].add_field(processed[0].strip(), processed[1].strip(), processed[2].strip())
                 elif "#" in line:
                     processed = line.replace('  ', "")
                     processed = processed.replace("\n", "")
                     processed = processed.split(":")
-                    self.__logger.send_log(f"Decoded type for group {current_data_group} : feild name ignored bits, bit length {processed[1]}")
-                    self.__data_types[current_data_group].add_feild("igrnoed feild", processed[1].strip(), "NONE")
+                    self.__logger.send_log(f"Decoded type for group {current_data_group} : field name ignored bits, bit length {processed[1]}")
+                    self.__data_types[current_data_group].add_field("ignored field", processed[1].strip(), "NONE")
                 else :
                     processed = line.replace('  ', "")
                     processed = processed.replace("\n", "")
