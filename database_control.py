@@ -45,7 +45,7 @@ class DataBaseHandler(threadWrapper):
             "string" : "TEXT",
             "bool" : "BOOLEAN",
             "bigint" : "BIGINT", 
-            "byte" : "VARBINARY",
+            "byte" : "BLOB",
         } #  NOTE: this dict makes the .dtobj file syntax match sqlite3 syntax.
 
         #Start the thread wrapper for  the process
@@ -412,7 +412,7 @@ class DataBaseHandler(threadWrapper):
         return data
     def save_byte_data(self, args):
         '''
-            This function is in charge of saving byte data (VARBINARY)
+            This function is in charge of saving byte data (BLOB)
 
             NOTE: This is not a general save like the insert data, it is use case specific. 
 
@@ -445,11 +445,12 @@ class DataBaseHandler(threadWrapper):
                     db_command += ", "
                     db_command += f"{field_name}"
             db_command +=  ") "
-            byte_str = ''.join(format(x, '02x') for x in args[1][key][i])
-            db_command += f"VALUES ({idx}, '{byte_str}')" # this self.__tables[args[0]].get_field_info(field_name)[0]} gets the bit length out of the data type class
+            # byte_str_temp = ''.join(format(x, '02x') for x in args[1][key][i])
+            # print(f"raw: {args[1][key][i]}\n old conversion: {byte_str_temp}")
+            db_command += f"VALUES ({idx}, ?)" # this self.__tables[args[0]].get_field_info(field_name)[0]} gets the bit length out of the data type class
 
             try:
-                self.__c.execute(db_command)
+                self.__c.execute(db_command, (args[1][key][i],))
                 self.__logger.send_log(" Insert command (byte) sent to data base ")
             except Exception as error: # pylint: disable=w0718
                 dto = print_message_dto(str(error) + " Command send to db: " + db_command)
