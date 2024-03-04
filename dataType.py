@@ -36,7 +36,7 @@ class dataType():
             add a map for combining types together. A.K.A field1, field2 = field3
         '''
         self.__convert_map[type1] = type2
-        self.__logger.send_log(f"{self.__data_group} added a discontiunous data type: {type1} < {type2}")
+        self.__logger.send_log(f"{self.__data_group} added a discontinuous data type: {type1} < {type2}")
     def __str__(self):
         # pylint: disable=missing-function-docstring
         message = f"<! DOCTYPE html>\n<html>\n<body>\n<h1><strong>Data Type:</strong> {self.__data_group}</h1>\n"

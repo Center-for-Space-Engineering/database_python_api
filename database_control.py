@@ -101,7 +101,6 @@ class DataBaseHandler(threadWrapper):
         '''
         table_name = self.__tables[args[0]].get_data_group()
         table_fields = self.__tables[args[0]].get_fields()
-
         db_command = f"CREATE TABLE IF NOT EXISTS {table_name} ("
         #this line is add as a way to index the data base
         db_command += "[table_idx] BOOLEAN PRIMARY KEY" 
@@ -273,23 +272,28 @@ class DataBaseHandler(threadWrapper):
             NOTE: This function is for other threads to call!
             
             Inputs:
-                args[0] : dict of new table to make
+                args[0] : dict of new table to make,
+                The dict Key is the name of the new table.
+                    The value in the dict is a list of list, 
+                    The first index of a sub list is the name of the row,
+                    The second index is the bit size,
+                    The last index is the type to convert to  
         '''
-
         for key in args[0]:
             table_name = key
-            new_data_type = dataType(table_name, self.__coms, idx_name=args[0][key][0][1]) #access the dictionary for the current table then access the first list then access first member of the list with is our idx name. 
-            input_idx = None
-            for fields_list in args[0][key]:
-                if not ('input_idx_db' in fields_list[0]): #pylint: disable=c0325
-                    new_data_type.add_field(fields_list[0], 0, fields_list[1])
-                else : 
-                    input_idx = fields_list
-                
-            self.__tables[table_name] = new_data_type
+            if not (table_name in self.__tables):
+                new_data_type = dataType(table_name, self.__coms, idx_name=args[0][key][0][1]) #access the dictionary for the current table then access the first list then access first member of the list with is our idx name. 
+                input_idx = None
+                for fields_list in args[0][key]:
+                    if not ('input_idx_db' in fields_list[0]): #pylint: disable=c0325
+                        new_data_type.add_field(fields_list[0], fields_list[1], fields_list[2])
+                    else : 
+                        input_idx = fields_list
+                    
+                self.__tables[table_name] = new_data_type
 
-            self.create_table([table_name]) #add the table
-            self.create_fields_archived([table_name, input_idx])     
+                self.create_table([table_name]) #add the table
+                self.create_fields_archived([table_name, input_idx])     
     def create_fields_archived(self, args):
         '''
             This function creates an archived in the data base for all the 
@@ -299,11 +303,10 @@ class DataBaseHandler(threadWrapper):
                 args[0] : table structure name to be archived
                 args[1] : input idx name 
         '''
-
         table_name = self.__tables[args[0]].get_data_group()
         table_fields = self.__tables[args[0]].get_fields()
         #Open the archived file
-        self.__dataFile = open("database/dataTypes.dtobj", 'a') # pylint: disable=r1732
+        self.__dataFile = open("database/dataTypes.dtobj", 'a+') # pylint: disable=r1732
         self.__dataFile.write(table_name + "\n")
         if args[1] is not None:
             self.__dataFile.write(f"    {args[1][0]}:{args[1][1]}\n")
