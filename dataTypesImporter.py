@@ -76,8 +76,9 @@ class dataTypeImporter():
                     processed = line.replace('  ', "")
                     processed = processed.replace("\n", "")
                     current_data_group = processed.strip()
-                    self.__data_types[current_data_group] = dataType(current_data_group, self.__coms)
-                    self.__logger.send_log(f"Created data group {current_data_group}")
+                    if len(current_data_group) > 0: # Make sure this is not a empty line.
+                        self.__data_types[current_data_group] = dataType(current_data_group, self.__coms)
+                        self.__logger.send_log(f"Created data group {current_data_group}")
 
         self.__logger.send_log(f"Created data types:\n {self}")
         dto = print_message_dto("Created data types.")  

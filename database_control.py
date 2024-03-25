@@ -276,7 +276,7 @@ class DataBaseHandler(threadWrapper):
                 The dict Key is the name of the new table.
                     The value in the dict is a list of list, 
                     The first index of a sub list is the name of the row,
-                    The second index is the bit size,
+                    The second index is the bit size, (0 if you dont care)
                     The last index is the type to convert to  
         '''
         for key in args[0]:
@@ -307,7 +307,7 @@ class DataBaseHandler(threadWrapper):
         table_fields = self.__tables[args[0]].get_fields()
         #Open the archived file
         self.__dataFile = open("database/dataTypes.dtobj", 'a+') # pylint: disable=r1732
-        self.__dataFile.write(table_name + "\n")
+        self.__dataFile.write("\n" + table_name + "\n")
         if args[1] is not None:
             self.__dataFile.write(f"    {args[1][0]}:{args[1][1]}\n")
         for field in table_fields:
@@ -316,7 +316,7 @@ class DataBaseHandler(threadWrapper):
         self.__dataFile.close()
         #Open the archived back up file
         self.__dataFile = open("database/dataTypes_backup.dtobj", 'a') # pylint: disable=r1732
-        self.__dataFile.write(table_name + "\n")
+        self.__dataFile.write("\n" + table_name + "\n")
         if args[1] is not None:
             self.__dataFile.write(f"    {args[1][0]}:{args[1][1]}\n")
         for field in table_fields:
@@ -406,13 +406,19 @@ class DataBaseHandler(threadWrapper):
             dto = print_message_dto(str(error) + " Command send to db: " + db_command)
             self.__coms.print_message(dto, 0)
             self.__logger.send_log(str(error) + " Command send to db: " + db_command)
-            return "<p> Error getting data </p>"
+            return "<p> Internal Error getting data </p>"
         #get cols 
-        cols = ["Table Index"] # add table_idx to the cols list
-        cols += self.get_fields_list([self.get_data_type([args[0]])])
-        #fetch and convert the data into a pandas data frame.
-        data = pd.DataFrame(self.__c.fetchall(), columns=cols)  
-        return data
+        try : 
+            cols = ["Table Index"] # add table_idx to the cols list
+            cols += self.get_fields_list([self.get_data_type([args[0]])])
+            #fetch and convert the data into a pandas data frame.
+            data = pd.DataFrame(self.__c.fetchall(), columns=cols)  
+            return data
+        except Exception as error: # pylint: disable=w0718
+            dto = print_message_dto(str(error) + " Command send to db: " + db_command)
+            self.__coms.print_message(dto, 0)
+            self.__logger.send_log(str(error) + " Command send to db: " + db_command)
+            return "<p> Internal Error getting data </p>"
     def save_byte_data(self, args):
         '''
             This function is in charge of saving byte data (BLOB)
