@@ -12,7 +12,7 @@ from logging_system_display_python_api.logger import loggerCustom # pylint: disa
 from threading_python_api.threadWrapper import threadWrapper # pylint: disable=e0401
 
 #import DTO for communicating internally
-from DTOs.print_message_dto import print_message_dto # pylint: disable=e0401
+from logging_system_display_python_api.DTOs.print_message_dto import print_message_dto # pylint: disable=e0401
 
 
 
