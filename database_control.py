@@ -281,7 +281,7 @@ class DataBaseHandler(threadWrapper):
         '''
         for key in args[0]:
             table_name = key
-            if not (table_name in self.__tables):
+            if not table_name in self.__tables:
                 new_data_type = dataType(table_name, self.__coms, idx_name=args[0][key][0][1]) #access the dictionary for the current table then access the first list then access first member of the list with is our idx name. 
                 input_idx = None
                 for fields_list in args[0][key]:
@@ -423,11 +423,11 @@ class DataBaseHandler(threadWrapper):
         '''
             This function is in charge of saving byte data (BLOB)
 
-            NOTE: This is not a general save like the insert data, it is use case specific. 
+            NOTE: This is not a general save like the insert data, it is use case specific. This only works for ONE column database tables. 
 
             args:
                 [0] : table name
-                [1] : list of bytes
+                [1] : dictionary of data to save, where the key is the name of the felid, and the mapped value is a list of bytes. 
                 [2] : caller thread name
         '''
         start_time = time.time()
