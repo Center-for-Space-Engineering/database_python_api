@@ -208,7 +208,9 @@ class DataBaseHandler(threadWrapper):
         return strList
     def get_data_type(self, args):
         '''
-            args is a list where the fist index is the table name
+            returns a dataType object, with contains information about how the table is structured, You can make calls on the data type object to understand your table structure. 
+            ARGS:
+                args[0] : table name
         '''
         return self.__tables[args[0]] # the arg is the table name to find
     def get_fields(self, args):
