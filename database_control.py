@@ -356,6 +356,7 @@ class DataBaseHandler(threadWrapper):
                 idx = args[1][idx_field_name][i][0] #if we have a time stamp lets use that as our index
             except : # pylint: disable=w0702
                 pass #no timestamp given
+
             for field in args[1]:
                 if field != idx_field_name:
                     if args[1][field][i] == 'NaN':
