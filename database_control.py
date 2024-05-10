@@ -2,7 +2,7 @@
   This module handles the database. It takes in commands and then translates them into sql
   then passes that onto the data base. 
 '''
-import sqlite3
+import mysql.connector as mysql_pkg
 import time
 import pandas as pd
 
@@ -27,7 +27,7 @@ class DataBaseHandler(threadWrapper):
         NOTE: When running multi threaded, only the __init__, makeRequest, getRequest, 
         and run function should be called by out side classes and threads. 
     '''   
-    def __init__(self, coms, db_name = 'database/database_file', is_gui = False):
+    def __init__(self, coms, db_name = 'database/database_file', is_gui = False, host:str='localhost', user:str="", password:str=""):
         #make class vars
         self.__logger = loggerCustom("logs/database_log_file.txt")
         self.__coms = coms
@@ -36,17 +36,20 @@ class DataBaseHandler(threadWrapper):
         self.__c = None
         self.__tables = None
         self.__is_gui = is_gui
+        self.__host = host
+        self.__password = password
+        self.__user = user
 
         #make Maps for db creation
         self.__type_map = { #the point of this dictionary is to map the type names from the
                             # dataTypes.dtobj file to the sql data base.
-            "int" : "INTEGER", 
+            "int" : "INT(10)", 
             "float" : "FLOAT(10)", # NOTE: the (#) is the precision of the float. 
             "string" : "TEXT",
-            "bool" : "BOOLEAN",
+            "bool" : "TINYINT",
             "bigint" : "BIGINT", 
-            "byte" : "BLOB",
-        } #  NOTE: this dict makes the .dtobj file syntax match sqlite3 syntax.
+            "byte" : "VARBINARY",
+        } #  NOTE: this dict makes the .dtobj file syntax match mysql syntax.
 
         #Start the thread wrapper for  the process
         self.__function_dict = {
@@ -77,8 +80,30 @@ class DataBaseHandler(threadWrapper):
         to be done when you make the class
         '''
         #Make data base (bd)
-        self.__conn = sqlite3.connect(self.__db_name)
+
+        self.__conn = mysql_pkg.connect(
+            host = self.__host,
+            user = self.__user,
+            password = self.__password,
+        )
+
         self.__c = self.__conn.cursor()
+
+        self.__c.execute("SHOW DATABASES")
+
+        if self.__db_name not in self.__c:
+            self.__c.execute(f"CREATE DATABASE IF NOT EXISTS {self.__db_name}")
+        
+        
+        self.__conn = mysql_pkg.connect(
+            host = self.__host,
+            user = self.__user,
+            password = self.__password,
+            database = self.__db_name
+        )
+
+        self.__c = self.__conn.cursor()
+
 
         #find and create the data tables fro the data base
         tableFinder = dataTypeImporter(self.__coms)
@@ -103,7 +128,7 @@ class DataBaseHandler(threadWrapper):
         table_fields = self.__tables[args[0]].get_fields()
         db_command = f"CREATE TABLE IF NOT EXISTS {table_name} ("
         #this line is add as a way to index the data base
-        db_command += "[table_idx] BOOLEAN PRIMARY KEY" 
+        db_command += "table_idx INT(10) PRIMARY KEY" 
 
         #iter for every field in this data group. The fields come from the dataTypes.dtobj file. 
         for field_name in table_fields:
@@ -116,10 +141,10 @@ class DataBaseHandler(threadWrapper):
                 # adding the ", " here means we don't have an extra one on the last line.
                 db_command += ", "
                 if table_fields[field_name][1] != 'byte':
-                    db_command += f"[{field_name}] {self.__type_map[table_fields[field_name][1]]}"
+                    db_command += f"{field_name} {self.__type_map[table_fields[field_name][1]]}"
                 #if it is a byte type we need to set the size of the field
                 else :
-                    db_command += f"[{field_name}] {self.__type_map[table_fields[field_name][1]]}({self.__tables[args[0]].get_field_info(field_name)[0]})" # this self.__tables[args[0]].get_field_info(field_name)[0]} gets the bit length out of the data type class
+                    db_command += f"{field_name} {self.__type_map[table_fields[field_name][1]]}({self.__tables[args[0]].get_field_info(field_name)[0]})" # this self.__tables[args[0]].get_field_info(field_name)[0]} gets the bit length out of the data type class
         db_command += ")"
 
         #try to make the table in the data base
@@ -457,12 +482,12 @@ class DataBaseHandler(threadWrapper):
                     db_command += ", "
                     db_command += f"{field_name}"
             db_command +=  ") "
-            # byte_str_temp = ''.join(format(x, '02x') for x in args[1][key][i])
+            byte_str_temp = ''.join(f'{x:02x}' for x in args[1][key][i])
             # print(f"raw: {args[1][key][i]}\n old conversion: {byte_str_temp}")
-            db_command += f"VALUES ({idx}, ?)" # this self.__tables[args[0]].get_field_info(field_name)[0]} gets the bit length out of the data type class
+            db_command += f"VALUES ({idx}, UNHEX('{byte_str_temp}'))" # this self.__tables[args[0]].get_field_info(field_name)[0]} gets the bit length out of the data type class
 
             try:
-                self.__c.execute(db_command, (args[1][key][i],))
+                self.__c.execute(db_command)
                 self.__logger.send_log(" Insert command (byte) sent to data base ")
             except Exception as error: # pylint: disable=w0718
                 dto = print_message_dto(str(error) + " Command send to db: " + db_command)
