@@ -49,6 +49,7 @@ class DataBaseHandler(threadWrapper):
             "bool" : "TINYINT",
             "bigint" : "BIGINT", 
             "byte" : "VARBINARY",
+            "uint" : "INT UNSIGNED"
         } #  NOTE: this dict makes the .dtobj file syntax match mysql syntax.
 
         #Start the thread wrapper for  the process
