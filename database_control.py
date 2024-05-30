@@ -27,7 +27,7 @@ class DataBaseHandler(threadWrapper):
         NOTE: When running multi threaded, only the __init__, makeRequest, getRequest, 
         and run function should be called by out side classes and threads. 
     '''   
-    def __init__(self, coms, db_name = 'database/database_file', is_gui = False, host:str='localhost', user:str="", password:str=""):
+    def __init__(self, coms, db_name = 'database/database_file', is_gui = False, host:str='localhost', user:str="", password:str="", clear_database:bool = False):
         #make class vars
         self.__logger = loggerCustom("logs/database_log_file.txt")
         self.__coms = coms
@@ -39,6 +39,7 @@ class DataBaseHandler(threadWrapper):
         self.__host = host
         self.__password = password
         self.__user = user
+        self.__clear_database = clear_database
 
         #make Maps for db creation
         self.__type_map = { #the point of this dictionary is to map the type names from the
@@ -67,7 +68,8 @@ class DataBaseHandler(threadWrapper):
             'create_fields_archived' : self.create_fields_archived,
             'save_data_group' : self.save_data_group,
             'get_data_large' : self.get_data_large,
-            'save_byte_data' : self.save_byte_data
+            'save_byte_data' : self.save_byte_data,
+            'delete_table' : self.delete_table,
         }
         super().__init__(self.__function_dict)
 
@@ -89,6 +91,15 @@ class DataBaseHandler(threadWrapper):
         )
 
         self.__c = self.__conn.cursor()
+
+        if self.__clear_database:
+            #clear log files
+            with open('database/dataTypes_backup.dtobj', 'w') as _:
+                pass
+            with open('database/dataTypes.dtobj', 'w') as _:
+                pass
+
+            self.__c.execute(f"DROP DATABASE IF EXISTS {self.__db_name}")
 
         self.__c.execute("SHOW DATABASES")
 
@@ -507,3 +518,17 @@ class DataBaseHandler(threadWrapper):
         self.__conn.commit() #this line commits the fields to the data base.
         dto = print_message_dto(f"Inserted Data time: {time.time() - start_time}.")
         self.__coms.print_message(dto)
+    def delete_table(self, args):
+        '''
+            Drops a table from the database.
+
+            Args :
+                args[0] : table name
+        '''
+        table_name = args[0]
+
+        try:
+            self.__c.execute(f"DROP TABLE IF EXISTS {table_name}")
+            return f"Table dropped {table_name}"
+        except Exception as e: # pylint: disable=w0718
+            return f"Error: {e}"
