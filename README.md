@@ -4,6 +4,13 @@ This api is built to adi the user in creating databases. It is meant to take an 
 
 ![API flow](databaseAPI.png)
 
+# NOTE:
+When you are working with the database I recommend clearing the database after you change tables. Use the flowing command. 
+```bash
+run_ground --clear-database
+```
+or you can change the database name in the `main.yaml` file. 
+
 
 ## `databaseControl`
 The holds all processed data. It can be query for the information by the server. It also dynamically create tables based on data groups in the `dataTypes.dtobj` file.\
