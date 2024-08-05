@@ -70,6 +70,7 @@ class DataBaseHandler(threadWrapper):
             'get_data_large' : self.get_data_large,
             'save_byte_data' : self.save_byte_data,
             'delete_table' : self.delete_table,
+            'get_last_data_points' : self.get_last_data_points,
         }
         super().__init__(self.__function_dict)
 
@@ -438,6 +439,63 @@ class DataBaseHandler(threadWrapper):
                 db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx LIMIT  {max_rows}"
             else :
                 db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx"
+            self.__c.execute(db_command)
+            self.__logger.send_log("Query command received: "  + db_command)
+            dto = print_message_dto("Query command received: "  + db_command)
+            self.__coms.print_message(dto, 2)
+        except Exception as error: # pylint: disable=w0718
+            dto = print_message_dto(str(error) + " Command send to db: " + db_command)
+            self.__coms.print_message(dto, 0)
+            self.__logger.send_log(str(error) + " Command send to db: " + db_command)
+            return "<p> Internal Error getting data </p>"
+        #get cols 
+        try : 
+            cols = ["Table Index"] # add table_idx to the cols list
+            cols += self.get_fields_list([self.get_data_type([args[0]])])
+            #fetch and convert the data into a pandas data frame.
+            data = pd.DataFrame(self.__c.fetchall(), columns=cols)  
+            return data
+        except Exception as error: # pylint: disable=w0718
+            dto = print_message_dto(str(error) + " Command send to db: " + db_command)
+            self.__coms.print_message(dto, 0)
+            self.__logger.send_log(str(error) + " Command send to db: " + db_command)
+            return "<p> Internal Error getting data </p>"
+    def get_last_data_points(self, args):
+        '''
+            args is a list where the fist index is the table name 
+            and the second is the start time for collecting the data
+            ARGS:
+                [0] table name
+                [1] number of lines to grab (starting from last saved point)
+                [2] Max rows allowed to be fetched at one time
+            RETURNS:
+                pandas data obj
+            NOTE: This function IS for large amounts of data! 
+        '''
+        #get the index
+        self.__c.execute(f"SELECT * FROM {args[0]} WHERE table_idx = (SELECT max(table_idx) FROM {args[0]})")
+        row = pd.DataFrame(self.__c.fetchall()) 
+
+        if row.empty:
+            idx = 0
+        else :
+            idx  = row[0][0] + 1
+
+        start_point = idx - int(args[1]) if idx > int(args[1]) else 0
+        
+        try :
+            #from and run db command
+            max_rows = 0
+            have_max = False
+            try :
+                max_rows = args[2]
+                have_max = True
+            except : # pylint: disable=w0702
+                pass
+            if have_max :
+                db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(start_point)} ORDER BY table_idx LIMIT  {max_rows}"
+            else :
+                db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(start_point)} ORDER BY table_idx"
             self.__c.execute(db_command)
             self.__logger.send_log("Query command received: "  + db_command)
             dto = print_message_dto("Query command received: "  + db_command)
