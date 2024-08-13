@@ -215,16 +215,16 @@ class DataBaseHandler(threadWrapper):
         db_command += ");"
         try:
             self.__c.execute(db_command)
-            self.__logger.send_log(" Insert data command sent to database. ")
+            # self.__logger.send_log(" Insert data command sent to database. ")
         except Exception as error: # pylint: disable=w0718
             dto = print_message_dto(str(error) + " Command send to db: " + db_command)
             self.__coms.print_message(dto, 0) 
-            self.__logger.send_log(str(error) + " Command send to db: " + db_command)
+            # self.__logger.send_log(str(error) + " Command send to db: " + db_command)
 
             if 'UNIQUE constraint failed' in str(error):
                 dto = print_message_dto(f" Duplicate  time stamp {idx}")
                 self.__coms.print_message(dto) 
-                self.__logger.send_log(f" Duplicate  time stamp {idx}")
+                # self.__logger.send_log(f" Duplicate  time stamp {idx}")
             else :
                 # pylint: disable=w0707
                 # pylint: disable=w0719
@@ -282,7 +282,7 @@ class DataBaseHandler(threadWrapper):
             #from and run db command
             db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx"
             self.__c.execute(db_command)
-            self.__logger.send_log("Query command received: "  + db_command)
+            # self.__logger.send_log("Query command received: "  + db_command)
             dto = print_message_dto("Query command received: "  + db_command)
             self.__coms.print_message(dto, 2)
         except Exception as error: # pylint: disable=w0718
@@ -302,7 +302,7 @@ class DataBaseHandler(threadWrapper):
                 message += f"{data.iloc[idx,i]},"
                 message += f"{data.iloc[idx,len(cols) - 1]}"# add last col with out ,
             message += "</p>"
-        self.__logger.send_log("data collected for server. (get_data_command)")
+        # self.__logger.send_log("data collected for server. (get_data_command)")
         return message
         #this is the setter section
     #Functions for DB control (Usually through requests made by other threads)
@@ -440,7 +440,7 @@ class DataBaseHandler(threadWrapper):
             else :
                 db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(args[1])} ORDER BY table_idx"
             self.__c.execute(db_command)
-            self.__logger.send_log("Query command received: "  + db_command)
+            # self.__logger.send_log("Query command received: "  + db_command)
             dto = print_message_dto("Query command received: "  + db_command)
             self.__coms.print_message(dto, 2)
         except Exception as error: # pylint: disable=w0718
@@ -497,7 +497,7 @@ class DataBaseHandler(threadWrapper):
             else :
                 db_command = f"SELECT * FROM {args[0]} WHERE table_idx >= {str(start_point)} ORDER BY table_idx"
             self.__c.execute(db_command)
-            self.__logger.send_log("Query command received: "  + db_command)
+            # self.__logger.send_log("Query command received: "  + db_command)
             dto = print_message_dto("Query command received: "  + db_command)
             self.__coms.print_message(dto, 2)
         except Exception as error: # pylint: disable=w0718
@@ -558,7 +558,7 @@ class DataBaseHandler(threadWrapper):
 
             try:
                 self.__c.execute(db_command)
-                self.__logger.send_log(" Insert command (byte) sent to data base ")
+                # self.__logger.send_log(" Insert command (byte) sent to data base ")
             except Exception as error: # pylint: disable=w0718
                 dto = print_message_dto(str(error) + " Command send to db: " + db_command)
                 self.__coms.print_message(dto, 0) 
