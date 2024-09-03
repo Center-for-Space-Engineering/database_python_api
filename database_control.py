@@ -219,7 +219,7 @@ class DataBaseHandler(threadWrapper):
         except Exception as error: # pylint: disable=w0718
             dto = print_message_dto(str(error) + " Command send to db: " + db_command)
             self.__coms.print_message(dto, 0) 
-            # self.__logger.send_log(str(error) + " Command send to db: " + db_command)
+            self.__logger.send_log(str(error) + " Command send to db: " + db_command)
 
             if 'UNIQUE constraint failed' in str(error):
                 dto = print_message_dto(f" Duplicate  time stamp {idx}")
