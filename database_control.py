@@ -172,6 +172,7 @@ class DataBaseHandler(threadWrapper):
             self.__logger.send_log("Failed to created table: " + db_command + str(error))
             dto = print_message_dto("Failed to created table: " + db_command + str(error))
             self.__coms.print_message(dto, 0)
+        
     def insert_data(self, args, idx_in = -1):
         '''
             This func takes in the table_name to insert and a list of data, 
@@ -333,7 +334,8 @@ class DataBaseHandler(threadWrapper):
                 self.__tables[table_name] = new_data_type
 
                 self.create_table([table_name]) #add the table
-                self.create_fields_archived([table_name, input_idx])     
+                self.create_fields_archived([table_name, input_idx])
+        return f"Table/s created" 
     def create_fields_archived(self, args):
         '''
             This function creates an archived in the data base for all the 
